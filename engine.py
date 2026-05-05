@@ -14,6 +14,11 @@ from datetime import datetime
 
 log = logging.getLogger(__name__)
 
+try:
+    _
+except NameError:
+    _ = lambda x: x
+
 
 class RecommendationEngine:
     """
@@ -65,7 +70,7 @@ class RecommendationEngine:
         if self.use_new_api:
             proxy = self.db.new_api
             return {
-                'title': proxy.field_for('title', book_id) or 'Sem título',
+                'title': proxy.field_for('title', book_id) or _('Sem título'),
                 'authors': proxy.field_for('authors', book_id) or [],
                 'tags': proxy.field_for('tags', book_id) or [],
                 'series': proxy.field_for('series', book_id),
@@ -80,7 +85,7 @@ class RecommendationEngine:
         else:
             metadata = self.db.get_metadata(book_id)
             return {
-                'title': metadata.title or 'Sem título',
+                'title': metadata.title or _('Sem título'),
                 'authors': list(metadata.authors) if metadata.authors else [],
                 'tags': list(metadata.tags) if metadata.tags else [],
                 'series': metadata.series,
@@ -331,15 +336,23 @@ class RecommendationEngine:
         if book_info['series']:
             series_candidates = self.metadata_index['series'].get(book_info['series'].lower(), set())
 
-        # União de tags, autores e séries; interseção com idioma
-        candidates = (tags_candidates | author_candidates | series_candidates) & same_language
+        publisher_candidates = set()
+        if book_info['publisher']:
+            publisher_candidates = self.metadata_index['publishers'].get(
+                book_info['publisher'].lower(), set()
+            )
 
-        # Remove o próprio livro
+        candidates = (
+            tags_candidates | author_candidates | series_candidates | publisher_candidates
+        ) & same_language
+
         candidates.discard(book_info['id'])
 
-        log.debug("Pré-filtro: %d candidatos (tags=%d, autores=%d, série=%d, idioma=%d)",
-                  len(candidates), len(tags_candidates), len(author_candidates),
-                  len(series_candidates), len(same_language))
+        log.debug(
+            "Pré-filtro: %d candidatos (tags=%d, autores=%d, série=%d, editora=%d, idioma=%d)",
+            len(candidates), len(tags_candidates), len(author_candidates),
+            len(series_candidates), len(publisher_candidates), len(same_language),
+        )
         
         return candidates
     
@@ -515,50 +528,40 @@ class RecommendationEngine:
         book2 = self.metadata_index['books'].get(recommended_id)
         
         if not book1 or not book2:
-            return "Informações não disponíveis"
-        
+            return _('Informações não disponíveis')
+
         reasons = []
-        
-        # 1. Verifica mesmo autor (prioridade alta)
+
+        # 1. Mesmo autor
         authors1 = set(a.lower() for a in book1['authors'])
         authors2 = set(a.lower() for a in book2['authors'])
         common_authors = authors1 & authors2
         if common_authors:
-            # Pega nome original (com capitalização)
-            author_name = None
-            for a in book2['authors']:
-                if a.lower() in common_authors:
-                    author_name = a
-                    break
-            reasons.append(f"Mesmo autor: {author_name}")
-        
-        # 2. Verifica mesma série
+            author_name = next(
+                (a for a in book2['authors'] if a.lower() in common_authors), None
+            )
+            reasons.append(_('Mesmo autor: {author}').format(author=author_name))
+
+        # 2. Mesma série
         if book1['series'] and book2['series']:
             if book1['series'].lower() == book2['series'].lower():
-                reasons.append(f"Série: {book2['series']}")
-        
-        # 3. Tags em comum (mostra no máximo 3)
+                reasons.append(_('Série: {series}').format(series=book2['series']))
+
+        # 3. Tags em comum (máx. 3)
         tags1 = set(t.lower() for t in book1['tags'])
         tags2 = set(t.lower() for t in book2['tags'])
         common_tags = tags1 & tags2
         if common_tags:
-            # Pega nomes originais das tags
-            original_tags = []
-            for t in book2['tags']:
-                if t.lower() in common_tags and len(original_tags) < 3:
-                    original_tags.append(t)
+            original_tags = [t for t in book2['tags'] if t.lower() in common_tags][:3]
             if original_tags:
-                tags_text = ', '.join(original_tags)
-                reasons.append(f"Tags: {tags_text}")
-        
-        # 4. Mesma editora (menos relevante, só menciona se tiver poucas razões)
+                reasons.append(_('Tags: {tags}').format(tags=', '.join(original_tags)))
+
+        # 4. Mesma editora (só se poucas razões)
         if len(reasons) < 2 and book1['publisher'] and book2['publisher']:
             if book1['publisher'].lower() == book2['publisher'].lower():
-                reasons.append(f"Editora: {book2['publisher']}")
-        
-        # 5. Se não tiver razões específicas, usa genérico
+                reasons.append(_('Editora: {publisher}').format(publisher=book2['publisher']))
+
         if not reasons:
-            return "Semelhança de metadados"
-        
-        # Junta com " • " para ficar compacto
-        return " • ".join(reasons)
+            return _('Semelhança de metadados')
+
+        return ' • '.join(reasons)

@@ -30,9 +30,9 @@
 - [x] **[engine.py:detect_category]** Heurística `PDF → técnico` falsa positiva para romances em PDF. Removida; categoria determinada exclusivamente por tags e keywords.
 - [x] **[ui.py:apply_settings]** `apply_settings` invalida índice mesmo quando só mudou o filtro de leitura (não requer reindexação). Corrigido: só invalida se mudou `use_tfidf` ou `min_similarity`.
 - [x] **[engine.py:recommend]** `_is_read` consultado individualmente por candidato a cada busca → construído set de IDs lidos uma vez no início de `recommend()`.
-- [ ] **[engine.py:get_explanation]** Strings da coluna "Razão" (`"Mesmo autor:"`, `"Série:"`, `"Tags:"`, etc.) não passaram pelo wrap de i18n.
-- [ ] **[engine.py:pre_filter]** Editora não é usada como fonte de candidatos no pré-filtro, mas entra no score. Livros com zero tags e mesma editora nunca chegam ao scoring.
-- [ ] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub.
+- [x] **[engine.py:get_explanation]** Strings da coluna "Razão" (`"Mesmo autor:"`, `"Série:"`, `"Tags:"`, etc.) não passaram pelo wrap de i18n. Guard `_()` adicionado ao módulo; todas as strings de `get_explanation` e `_get_metadata` envolvidas.
+- [x] **[engine.py:pre_filter]** Editora não era usada como fonte de candidatos no pré-filtro. `publisher_candidates` adicionado à união; livros com zero tags mas mesma editora agora chegam ao scoring.
+- [ ] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub. Conteúdo deve ser em inglês.
 
 ## P3 — Manutenção
 
