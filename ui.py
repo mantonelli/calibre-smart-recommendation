@@ -64,11 +64,12 @@ class RecommenderDialog(QDialog):
     Dialog que exibe recomendações de livros
     """
     
-    def __init__(self, gui, book_id, recommendations):
+    def __init__(self, gui, book_id, recommendations, engine):
         QDialog.__init__(self, gui)
         self.gui = gui
         self.book_id = book_id
         self.recommendations = recommendations
+        self.engine = engine
         
         self.setWindowTitle('Recomendações de Livros Similares')
         self.setMinimumWidth(800)
@@ -157,39 +158,21 @@ class RecommenderDialog(QDialog):
     def _populate_table(self):
         """Preenche tabela com recomendações"""
         self.table.setRowCount(len(self.recommendations))
-        
+
         for row, (book_id, score, title, authors, rating) in enumerate(self.recommendations):
-            # Título
             title_item = QTableWidgetItem(title)
             title_item.setData(UserRole, book_id)
             self.table.setItem(row, 0, title_item)
-            
-            # Autores
-            author_text = ', '.join(authors) if authors else 'Desconhecido'
-            author_item = QTableWidgetItem(author_text)
+
+            author_item = QTableWidgetItem(', '.join(authors) if authors else 'Desconhecido')
             self.table.setItem(row, 1, author_item)
-            
-            # Similaridade (como porcentagem)
+
             similarity_item = QTableWidgetItem(f'{score * 100:.1f}%')
             similarity_item.setData(UserRole, score)
             self.table.setItem(row, 2, similarity_item)
-            
-            # Razão - busca explicação do engine
-            db = self.gui.current_db
-            from calibre_plugins.recommender.engine import RecommendationEngine
-            
-            # Usa o engine existente se disponível
-            if hasattr(self.gui, '_recommender_engine'):
-                engine = self.gui._recommender_engine
-            else:
-                # Cria temporário (não deveria acontecer)
-                from calibre.utils.config import JSONConfig
-                prefs = JSONConfig('plugins/recommender')
-                engine = RecommendationEngine(db, prefs)
-            
-            explanation = engine.get_explanation(self.book_id, book_id)
-            reason_item = QTableWidgetItem(explanation)
-            self.table.setItem(row, 3, reason_item)
+
+            explanation = self.engine.get_explanation(self.book_id, book_id)
+            self.table.setItem(row, 3, QTableWidgetItem(explanation))
     
     def _on_book_double_clicked(self):
         """Evento de double-click em livro"""
@@ -276,9 +259,6 @@ class RecommenderAction(InterfaceAction):
                 prefs = self.load_preferences()
                 self.engine = RecommendationEngine(db, prefs)
             
-            # Armazena engine no GUI para acesso no dialog
-            self.gui._recommender_engine = self.engine
-            
             # Verifica se índice precisa ser construído
             if not self.engine.metadata_index:
                 progress = QProgressDialog(
@@ -355,7 +335,7 @@ class RecommenderAction(InterfaceAction):
                 return
             
             # Mostra dialog com recomendações
-            dialog = RecommenderDialog(self.gui, book_id, recommendations)
+            dialog = RecommenderDialog(self.gui, book_id, recommendations, self.engine)
             dialog.exec()
             
         except Exception as e:
