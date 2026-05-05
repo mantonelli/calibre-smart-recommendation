@@ -8,6 +8,7 @@ Implementa similaridade por metadados com suporte opcional para TF-IDF
 
 import logging
 import os
+import re
 import json
 from collections import defaultdict
 from datetime import datetime
@@ -25,7 +26,19 @@ class RecommendationEngine:
     Motor principal de recomendações
     Usa abordagem híbrida em camadas para performance em bibliotecas grandes
     """
-    
+
+    _PERSONAL_TAGS = {
+        'read', 'to-read', 'to read', 'favourite', 'favorite', 'mine', 'owned',
+        'lido', 'lendo', 'quero-ler', 'quero ler', 'para-ler', 'para ler',
+        'wishlist', 'emprestado', 'devolvido', 'física', 'fisico', 'digital',
+        'ebook', 'kindle', '2020', '2021', '2022', '2023', '2024', '2025',
+    }
+
+    _SEQUENCE_RE = re.compile(
+        r'\b(vol\.?|volume|tomo|parte|part)\b|#\s*\d+|\bbook\s+\d+|\blivro\s+\d+',
+        re.IGNORECASE,
+    )
+
     def __init__(self, db, prefs):
         """
         Args:
@@ -214,6 +227,11 @@ class RecommendationEngine:
                 'formats': metadata['formats']
             }
             
+            # Score de qualidade dos metadados
+            q_score, q_issues = self._score_metadata(book_info)
+            book_info['quality_score'] = q_score
+            book_info['quality_issues'] = q_issues
+
             # Adiciona ao índice principal
             self.metadata_index['books'][book_id] = book_info
             
@@ -246,6 +264,90 @@ class RecommendationEngine:
 
         log.info("Índice construído: %d livros indexados", total)
     
+    def _score_metadata(self, book_info):
+        """
+        Calcula score de qualidade dos metadados (0–100) e lista problemas.
+
+        Returns:
+            tuple[int, list[str]]: (score, issues)
+        """
+        score = 100
+        issues = []
+
+        # Tags — 40 pts
+        tags = book_info['tags']
+        if not tags:
+            score -= 40
+            issues.append(_('Sem tags'))
+        else:
+            meaningful = [t for t in tags if t.lower() not in self._PERSONAL_TAGS]
+            if not meaningful:
+                score -= 20
+                issues.append(_('Apenas tags pessoais'))
+            elif len(meaningful) < 2:
+                score -= 10
+                issues.append(_('Poucas tags descritivas (< 2)'))
+
+        # Autor — 20 pts
+        if not book_info['authors']:
+            score -= 20
+            issues.append(_('Sem autor'))
+
+        # Série — 15 pts (só penaliza quando título sugere sequência)
+        if not book_info['series']:
+            if self._SEQUENCE_RE.search(book_info['title']):
+                score -= 15
+                issues.append(_('Série ausente (título sugere sequência)'))
+
+        # Editora — 10 pts
+        if not book_info['publisher']:
+            score -= 10
+            issues.append(_('Sem editora'))
+
+        # Sinopse — 10 pts
+        if not book_info['comments']:
+            score -= 10
+            issues.append(_('Sem sinopse'))
+
+        # Ano de publicação — 5 pts
+        if not book_info['pubdate']:
+            score -= 5
+            issues.append(_('Sem data de publicação'))
+
+        return max(0, score), issues
+
+    def get_quality_report(self, min_score=70):
+        """
+        Retorna livros com score de qualidade abaixo do limiar, ordenados do
+        pior para o melhor.
+
+        Args:
+            min_score: Score mínimo (0–100). Livros acima ficam de fora.
+
+        Returns:
+            list[dict]: cada item tem id, title, authors, score, issues.
+        """
+        if not self.metadata_index:
+            return []
+
+        results = []
+        for book_id, book_info in self.metadata_index['books'].items():
+            score = book_info.get('quality_score')
+            issues = book_info.get('quality_issues')
+            if score is None:
+                score, issues = self._score_metadata(book_info)
+            if score < min_score:
+                results.append({
+                    'id': book_id,
+                    'title': book_info['title'],
+                    'authors': book_info['authors'],
+                    'score': score,
+                    'issues': issues,
+                })
+
+        results.sort(key=lambda x: x['score'])
+        return results
+
     def detect_category(self, book_info):
         """
         Detecta se livro é técnico ou ficção baseado em tags e formato

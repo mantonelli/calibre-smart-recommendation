@@ -13,7 +13,8 @@ try:
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
                           QDialogButtonBox, QSplitter, QScrollArea, QFrame,
-                          QPixmap, QGridLayout, QWidget, QSizePolicy)
+                          QPixmap, QGridLayout, QWidget, QSizePolicy,
+                          QColor, QBrush)
     from PyQt6.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = True
     SelectRows = QAbstractItemView.SelectionBehavior.SelectRows
@@ -35,7 +36,8 @@ except (ImportError, AttributeError):
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
                           QDialogButtonBox, QSplitter, QScrollArea, QFrame,
-                          QPixmap, QGridLayout, QWidget, QSizePolicy)
+                          QPixmap, QGridLayout, QWidget, QSizePolicy,
+                          QColor, QBrush)
     from PyQt5.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = False
     SelectRows = QAbstractItemView.SelectRows
@@ -355,6 +357,115 @@ class RecommenderDialog(QDialog):
         self.gui.library_view.scrollTo(self.gui.library_view.currentIndex())
 
 
+class QualityReportDialog(QDialog):
+    """Dialog que exibe livros com metadados incompletos."""
+
+    def __init__(self, gui, report, min_score):
+        QDialog.__init__(self, gui)
+        self.gui = gui
+        self.report = report
+        self.min_score = min_score
+
+        self.setWindowTitle(_('Qualidade dos Metadados'))
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(500)
+        self._setup_ui()
+        self._populate_table()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        count = len(self.report)
+        self.summary_label = QLabel(
+            _('<b>{count} livro(s)</b> com score abaixo de {threshold}% — '
+              'ordenados do mais incompleto para o mais completo.').format(
+                  count=count, threshold=self.min_score)
+        )
+        layout.addWidget(self.summary_label)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels([
+            _('Título'), _('Autor(es)'), _('Score'), _('Problemas')
+        ])
+        self.table.setSelectionBehavior(SelectRows)
+        self.table.setSelectionMode(SingleSelection)
+        self.table.setAlternatingRowColors(True)
+        self.table.setSortingEnabled(True)
+        self.table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers if PYQT6
+            else QAbstractItemView.NoEditTriggers
+        )
+
+        header = self.table.horizontalHeader()
+        header.setStretchLastSection(True)
+        try:
+            interactive = QHeaderView.ResizeMode.Interactive
+        except AttributeError:
+            interactive = QHeaderView.Interactive
+        for col in range(3):
+            header.setSectionResizeMode(col, interactive)
+        self.table.setColumnWidth(0, 240)
+        self.table.setColumnWidth(1, 160)
+        self.table.setColumnWidth(2, 70)
+
+        self.table.doubleClicked.connect(self._navigate_to_book)
+        layout.addWidget(self.table, 1)
+
+        btn_layout = QHBoxLayout()
+        self.goto_button = QPushButton(_('Ir para Livro'))
+        self.goto_button.clicked.connect(self._navigate_to_book)
+        btn_layout.addWidget(self.goto_button)
+        btn_layout.addStretch()
+        close_btn = QPushButton(_('Fechar'))
+        close_btn.clicked.connect(self.accept)
+        btn_layout.addWidget(close_btn)
+        layout.addLayout(btn_layout)
+
+    def _populate_table(self):
+        self.table.setRowCount(len(self.report))
+
+        for row, entry in enumerate(self.report):
+            score = entry['score']
+
+            title_item = QTableWidgetItem(entry['title'])
+            title_item.setData(UserRole, entry['id'])
+            self.table.setItem(row, 0, title_item)
+
+            authors_text = ', '.join(entry['authors']) if entry['authors'] else _('Desconhecido')
+            self.table.setItem(row, 1, QTableWidgetItem(authors_text))
+
+            score_item = QTableWidgetItem(f'{score}%')
+            score_item.setData(UserRole, score)
+            if score < 40:
+                score_item.setForeground(QBrush(QColor('#c0392b')))
+            elif score < 70:
+                score_item.setForeground(QBrush(QColor('#e67e22')))
+            self.table.setItem(row, 2, score_item)
+
+            issues_text = ' • '.join(entry['issues']) if entry['issues'] else ''
+            self.table.setItem(row, 3, QTableWidgetItem(issues_text))
+
+        if self.report:
+            self.table.selectRow(0)
+
+    def _navigate_to_book(self):
+        row = self.table.currentRow()
+        if row < 0:
+            return
+        book_id = self.table.item(row, 0).data(UserRole)
+        self.accept()
+        self.gui.library_view.select_rows([book_id], using_ids=True)
+        if getattr(self.gui.library_view, 'current_id', None) != book_id:
+            try:
+                self.gui.search.clear()
+            except Exception:
+                pass
+            self.gui.library_view.select_rows([book_id], using_ids=True)
+        self.gui.library_view.scrollTo(self.gui.library_view.currentIndex())
+
+
 class RecommenderAction(InterfaceAction):
     """Action principal do plugin - adiciona botão na interface."""
 
@@ -373,6 +484,8 @@ class RecommenderAction(InterfaceAction):
 
         menu = QMenu()
         menu.addAction(_('Recomendar Similares'), self.show_recommendations)
+        menu.addSeparator()
+        menu.addAction(_('Qualidade dos Metadados...'), self._show_quality_report)
         menu.addSeparator()
         menu.addAction(_('Configurações...'), self._show_config)
         menu.addAction(_('Reindexar Biblioteca'), self._force_reindex)
@@ -406,6 +519,7 @@ class RecommenderAction(InterfaceAction):
         from calibre.utils.config import JSONConfig
         prefs = JSONConfig('plugins/recommender')
         prefs.defaults['min_similarity'] = 0.1
+        prefs.defaults['quality_min_score'] = 50
         return prefs
 
     def _ensure_engine(self, db):
@@ -478,6 +592,39 @@ class RecommenderAction(InterfaceAction):
         algo_after = config_widget.prefs.get('min_similarity', 0.1)
         if algo_after != algo_before:
             self.apply_settings()
+
+    def _show_quality_report(self):
+        db = self.gui.current_db
+        self._ensure_engine(db)
+
+        if not self.engine.metadata_index:
+            if not self._build_index_with_progress():
+                return
+
+        prefs = self.load_preferences()
+        min_score = int(prefs.get('quality_min_score', 70))
+
+        progress = QProgressDialog(_('Analisando metadados...'), None, 0, 0, self.gui)
+        progress.setWindowTitle(_('Qualidade dos Metadados'))
+        progress.setWindowModality(WindowModal)
+        progress.show()
+        try:
+            report = self.engine.get_quality_report(min_score=min_score)
+        finally:
+            progress.close()
+
+        if not report:
+            info_dialog(
+                self.gui,
+                _('Metadados em boa forma'),
+                _('Nenhum livro encontrado com score abaixo de {threshold}%.').format(
+                    threshold=min_score),
+                show=True,
+            )
+            return
+
+        d = QualityReportDialog(self.gui, report, min_score)
+        d.exec() if PYQT6 else d.exec_()
 
     def _force_reindex(self):
         db = self.gui.current_db

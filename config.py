@@ -36,6 +36,7 @@ class ConfigWidget(QWidget):
         self.prefs.defaults['default_top_n'] = 20
         self.prefs.defaults['filter_unread'] = False
         self.prefs.defaults['read_column'] = ''
+        self.prefs.defaults['quality_min_score'] = 50
 
         self._setup_ui()
         self._load_settings()
@@ -63,6 +64,17 @@ class ConfigWidget(QWidget):
         self.min_sim_spinbox.setSuffix('%')
         self.min_sim_spinbox.setToolTip(_('Similaridade mínima para exibir recomendação (0-100%)'))
         algo_layout.addRow(_('Similaridade mínima:'), self.min_sim_spinbox)
+
+        self.quality_score_spinbox = QSpinBox()
+        self.quality_score_spinbox.setMinimum(0)
+        self.quality_score_spinbox.setMaximum(100)
+        self.quality_score_spinbox.setSingleStep(5)
+        self.quality_score_spinbox.setSuffix('%')
+        self.quality_score_spinbox.setToolTip(_(
+            'Livros com score de qualidade abaixo deste valor aparecem no\n'
+            'relatório de metadados incompletos (0–100%).'
+        ))
+        algo_layout.addRow(_('Alerta de qualidade abaixo de:'), self.quality_score_spinbox)
 
         layout.addWidget(algo_group)
 
@@ -143,6 +155,7 @@ class ConfigWidget(QWidget):
     def _load_settings(self):
         self.top_n_spinbox.setValue(self.prefs.get('default_top_n', 20))
         self.min_sim_spinbox.setValue(int(self.prefs.get('min_similarity', 0.1) * 100))
+        self.quality_score_spinbox.setValue(self.prefs.get('quality_min_score', 70))
         filter_unread = self.prefs.get('filter_unread', False)
         self.filter_unread_checkbox.setChecked(filter_unread)
         self.read_column_input.setText(self.prefs.get('read_column', ''))
@@ -151,6 +164,7 @@ class ConfigWidget(QWidget):
     def save_settings(self):
         self.prefs['default_top_n'] = self.top_n_spinbox.value()
         self.prefs['min_similarity'] = self.min_sim_spinbox.value() / 100.0
+        self.prefs['quality_min_score'] = self.quality_score_spinbox.value()
         self.prefs['filter_unread'] = self.filter_unread_checkbox.isChecked()
         self.prefs['read_column'] = self.read_column_input.text().strip()
 
