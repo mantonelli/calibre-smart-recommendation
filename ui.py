@@ -410,13 +410,13 @@ class QualityReportDialog(QDialog):
         self.table.setColumnWidth(1, 160)
         self.table.setColumnWidth(2, 70)
 
-        self.table.doubleClicked.connect(self._navigate_to_book)
+        self.table.doubleClicked.connect(self._open_metadata_editor)
         layout.addWidget(self.table, 1)
 
         btn_layout = QHBoxLayout()
-        self.goto_button = QPushButton(_('Ir para Livro'))
-        self.goto_button.clicked.connect(self._navigate_to_book)
-        btn_layout.addWidget(self.goto_button)
+        self.edit_button = QPushButton(_('Editar Metadados'))
+        self.edit_button.clicked.connect(self._open_metadata_editor)
+        btn_layout.addWidget(self.edit_button)
         btn_layout.addStretch()
         close_btn = QPushButton(_('Fechar'))
         close_btn.clicked.connect(self.accept)
@@ -450,12 +450,13 @@ class QualityReportDialog(QDialog):
         if self.report:
             self.table.selectRow(0)
 
-    def _navigate_to_book(self):
+    def _open_metadata_editor(self):
         row = self.table.currentRow()
         if row < 0:
             return
         book_id = self.table.item(row, 0).data(UserRole)
-        self.accept()
+
+        # Seleciona o livro na biblioteca (necessário para a ação de edição)
         self.gui.library_view.select_rows([book_id], using_ids=True)
         if getattr(self.gui.library_view, 'current_id', None) != book_id:
             try:
@@ -463,7 +464,12 @@ class QualityReportDialog(QDialog):
             except Exception:
                 pass
             self.gui.library_view.select_rows([book_id], using_ids=True)
-        self.gui.library_view.scrollTo(self.gui.library_view.currentIndex())
+
+        # Abre o editor de metadados sem fechar este diálogo
+        try:
+            self.gui.iactions['Edit Metadata'].edit_metadata(False)
+        except Exception as e:
+            log.warning("Erro ao abrir editor de metadados: %s", e)
 
 
 class RecommenderAction(InterfaceAction):
