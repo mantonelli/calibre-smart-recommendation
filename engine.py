@@ -138,10 +138,13 @@ class RecommendationEngine:
             'last_updated': data.get('last_updated', ''),
         }
     
-    def build_index(self, force_rebuild=False):
+    def build_index(self, force_rebuild=False, progress_callback=None):
         """
         Constrói índice de metadados para busca rápida
         Deve ser chamado ao iniciar o plugin ou quando biblioteca muda
+
+        Args:
+            progress_callback: callable(current: int, total: int) chamado a cada N livros
         """
         cache_file = os.path.join(self.cache_dir, 'metadata_index.json')
 
@@ -184,7 +187,9 @@ class RecommendationEngine:
         for idx, book_id in enumerate(all_ids):
             if idx % 1000 == 0:
                 print(f"Indexando: {idx}/{total}")
-            
+            if progress_callback and idx % 100 == 0:
+                progress_callback(idx, total)
+
             try:
                 # Obtém metadados de forma compatível
                 metadata = self._get_metadata(book_id)
@@ -234,7 +239,10 @@ class RecommendationEngine:
         # Salva cache
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(self._serialize_index(self.metadata_index), f, ensure_ascii=False)
-        
+
+        if progress_callback:
+            progress_callback(total, total)
+
         print(f"Índice construído: {total} livros indexados")
     
     def detect_category(self, book_info):

@@ -7,7 +7,7 @@
 
 ## P1 — Bugs funcionais
 
-- [ ] **[ui.py:256-273]** `QProgressDialog` de indexação não renderiza conteúdo — `build_index()` bloqueia a main thread, impedindo o Qt de pintar o dialog. Mover indexação para `QThread` + emitir sinais de progresso, ou chamar `QApplication.processEvents()` a cada N livros indexados no engine.
+- [x] **[ui.py:256-273]** `QProgressDialog` de indexação não renderiza conteúdo — `build_index()` bloqueia a main thread, impedindo o Qt de pintar o dialog. Corrigido com `IndexWorker(QThread)` + `QEventLoop`; engine emite progresso via callback.
 
 - [x] **[engine.py:116-117]** Validação de cache só por contagem → agora compara mtime do cache com mtime de `metadata.db`
 - [x] **[engine.py:359]** `pubdate.year` sem guard → adicionado `hasattr(..., 'year')` antes de acessar

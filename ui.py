@@ -10,6 +10,7 @@ try:
     from PyQt6.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon)
+    from PyQt6.QtCore import QThread, pyqtSignal, QEventLoop
     # PyQt6 mudou alguns enums
     PYQT6 = True
     SelectRows = QAbstractItemView.SelectionBehavior.SelectRows
@@ -21,6 +22,7 @@ except (ImportError, AttributeError):
     from PyQt5.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon)
+    from PyQt5.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = False
     SelectRows = QAbstractItemView.SelectRows
     SingleSelection = QAbstractItemView.SingleSelection
@@ -31,6 +33,26 @@ from calibre.gui2 import error_dialog, info_dialog
 from calibre.gui2.actions import InterfaceAction
 
 from calibre_plugins.recommender.engine import RecommendationEngine
+
+
+class IndexWorker(QThread):
+    """Executa build_index em background para não bloquear a UI."""
+
+    progress = pyqtSignal(int, int)  # (current, total)
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, engine):
+        QThread.__init__(self)
+        self.engine = engine
+
+    def run(self):
+        try:
+            self.engine.build_index(progress_callback=self.progress.emit)
+            self.finished.emit()
+        except Exception as e:
+            import traceback
+            self.error.emit(f"{e}\n\n{traceback.format_exc()}")
 
 
 class RecommenderDialog(QDialog):
@@ -252,25 +274,39 @@ class RecommenderAction(InterfaceAction):
             
             # Verifica se índice precisa ser construído
             if not self.engine.metadata_index:
-                # Mostra dialog de progresso
-                progress = QProgressDialog('Construindo índice de metadados pela primeira vez...\nIsso pode levar alguns minutos.', 
-                                          None, 0, 0, self.gui)
+                progress = QProgressDialog(
+                    'Preparando indexação...', None, 0, 0, self.gui
+                )
                 progress.setWindowTitle('Indexando Biblioteca')
                 progress.setWindowModality(WindowModal)
                 progress.show()
-                
-                try:
-                    self.engine.build_index()
-                    print(f"DEBUG: Índice construído com {len(self.engine.metadata_index['books'])} livros")
-                except Exception as e:
-                    progress.close()
-                    import traceback
-                    error_msg = f"Erro ao construir índice:\n{str(e)}\n\nDetalhes:\n{traceback.format_exc()}"
-                    print(f"ERROR: {error_msg}")
-                    error_dialog(self.gui, 'Erro na indexação', error_msg, show=True)
+
+                worker = IndexWorker(self.engine)
+                error_holder = [None]
+                loop = QEventLoop()
+
+                def on_progress(current, total):
+                    progress.setMaximum(total)
+                    progress.setValue(current)
+                    progress.setLabelText(f'Indexando: {current} / {total} livros...')
+
+                def on_error(msg):
+                    error_holder[0] = msg
+                    loop.quit()
+
+                worker.progress.connect(on_progress)
+                worker.finished.connect(loop.quit)
+                worker.error.connect(on_error)
+                worker.start()
+                loop.exec() if PYQT6 else loop.exec_()
+                progress.close()
+
+                if error_holder[0]:
+                    error_dialog(self.gui, 'Erro na indexação',
+                                 f"Erro ao construir índice:\n{error_holder[0]}", show=True)
                     return
-                finally:
-                    progress.close()
+
+                print(f"DEBUG: Índice construído com {len(self.engine.metadata_index['books'])} livros")
             
             # Obtém recomendações
             progress = QProgressDialog('Calculando recomendações...', None, 0, 0, self.gui)
