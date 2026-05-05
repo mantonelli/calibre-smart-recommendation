@@ -32,7 +32,6 @@ class ConfigWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self.prefs = JSONConfig('plugins/recommender')
-        self.prefs.defaults['use_tfidf'] = False
         self.prefs.defaults['min_similarity'] = 0.1
         self.prefs.defaults['default_top_n'] = 20
         self.prefs.defaults['filter_unread'] = False
@@ -49,14 +48,6 @@ class ConfigWidget(QWidget):
         algo_group = QGroupBox(_('Configurações do Algoritmo'))
         algo_layout = QFormLayout()
         algo_group.setLayout(algo_layout)
-
-        self.tfidf_checkbox = QCheckBox()
-        self.tfidf_checkbox.setToolTip(_(
-            'Usa análise textual (TF-IDF) para melhorar recomendações.\n'
-            'Requer scikit-learn instalado.\n'
-            'Pode tornar a primeira busca mais lenta.'
-        ))
-        algo_layout.addRow(_('Usar análise textual (TF-IDF):'), self.tfidf_checkbox)
 
         self.top_n_spinbox = QSpinBox()
         self.top_n_spinbox.setMinimum(5)
@@ -150,7 +141,6 @@ class ConfigWidget(QWidget):
         self.read_column_input.setEnabled(checked)
 
     def _load_settings(self):
-        self.tfidf_checkbox.setChecked(self.prefs.get('use_tfidf', False))
         self.top_n_spinbox.setValue(self.prefs.get('default_top_n', 20))
         self.min_sim_spinbox.setValue(int(self.prefs.get('min_similarity', 0.1) * 100))
         filter_unread = self.prefs.get('filter_unread', False)
@@ -159,7 +149,6 @@ class ConfigWidget(QWidget):
         self._on_filter_toggled(filter_unread)
 
     def save_settings(self):
-        self.prefs['use_tfidf'] = self.tfidf_checkbox.isChecked()
         self.prefs['default_top_n'] = self.top_n_spinbox.value()
         self.prefs['min_similarity'] = self.min_sim_spinbox.value() / 100.0
         self.prefs['filter_unread'] = self.filter_unread_checkbox.isChecked()

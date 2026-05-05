@@ -405,7 +405,6 @@ class RecommenderAction(InterfaceAction):
     def load_preferences(self):
         from calibre.utils.config import JSONConfig
         prefs = JSONConfig('plugins/recommender')
-        prefs.defaults['use_tfidf'] = False
         prefs.defaults['min_similarity'] = 0.1
         return prefs
 
@@ -466,10 +465,7 @@ class RecommenderAction(InterfaceAction):
         layout.addWidget(config_widget)
 
         # Captura settings que exigem reindexação ANTES de salvar
-        algo_before = (
-            config_widget.prefs.get('use_tfidf', False),
-            config_widget.prefs.get('min_similarity', 0.1),
-        )
+        algo_before = config_widget.prefs.get('min_similarity', 0.1)
 
         buttons = QDialogButtonBox(OkCancel)
         buttons.accepted.connect(lambda: (config_widget.save_settings(), d.accept()))
@@ -479,10 +475,7 @@ class RecommenderAction(InterfaceAction):
         d.exec() if PYQT6 else d.exec_()
 
         # Invalida índice apenas se configurações de algoritmo mudaram
-        algo_after = (
-            config_widget.prefs.get('use_tfidf', False),
-            config_widget.prefs.get('min_similarity', 0.1),
-        )
+        algo_after = config_widget.prefs.get('min_similarity', 0.1)
         if algo_after != algo_before:
             self.apply_settings()
 

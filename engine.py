@@ -36,21 +36,9 @@ class RecommendationEngine:
         self.prefs = prefs
         self.cache_dir = self._get_cache_dir()
         self.metadata_index = None
-        self.use_tfidf = False
-        
         # Detecta API do Calibre
         self.use_new_api = hasattr(db, 'new_api')
         log.debug("Calibre API: %s", 'new_api' if self.use_new_api else 'legacy')
-        
-        # Tenta importar scikit-learn se disponível
-        try:
-            from sklearn.feature_extraction.text import TfidfVectorizer
-            from sklearn.metrics.pairwise import cosine_similarity
-            self.TfidfVectorizer = TfidfVectorizer
-            self.cosine_similarity = cosine_similarity
-            self.use_tfidf = prefs.get('use_tfidf', False)
-        except ImportError:
-            self.use_tfidf = False
     
     def _get_all_book_ids(self):
         """Obtém todos os IDs de livros de forma compatível com diferentes versões do Calibre"""
