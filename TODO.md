@@ -20,7 +20,7 @@
 
 - [x] **[ui.py:150-163]** `_populate_table` cria engine temporário por livro se `gui._recommender_engine` ausente → engine passado como parâmetro ao `RecommenderDialog`; hack `gui._recommender_engine` removido.
 - [x] **[config.py:136-152]** Botão "Reconstruir Índice" só apaga cache, não reconstrói imediatamente → renomeado para "Limpar Cache do Índice"; mensagens e tooltip explicam que reindexação ocorre na próxima pesquisa.
-- [ ] **[ui.py:195]** `icon.png` não existe no projeto → `get_icons` sempre usa fallback; adicionar ícone ou simplificar
+- [x] **[ui.py:195]** `icon.png` não existe → `get_icons` substituída por `get_plugin_icon()` que usa `calibre.gui2.get_icons` (carrega do zip), depois `I('books_in_library.png')`, depois tema do sistema. `build.py` inclui `images/` automaticamente quando presente.
 - [x] Botão funciona como split button: clique principal recomenda, seta abre menu com "Configurações..." e "Reindexar Biblioteca". Lógica de indexação extraída para `_build_index_with_progress()` reutilizável.
 - [x] Filtro de livros não lidos: config.py ganhou seção "Filtro de Leitura" com checkbox + campo de coluna (desabilitado quando filtro inativo). engine.py filtra candidatos via `_is_read()` consultando a coluna customizada booleana (new_api e legacy).
 

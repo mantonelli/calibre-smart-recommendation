@@ -210,8 +210,7 @@ class RecommenderAction(InterfaceAction):
 
     def genesis(self):
         """Inicializa a action"""
-        icon = get_icons('images/icon.png', 'Recommender')
-        self.qaction.setIcon(icon)
+        self.qaction.setIcon(get_plugin_icon())
         self.qaction.triggered.connect(self.show_recommendations)
         self.engine = None
 
@@ -406,19 +405,22 @@ class RecommenderAction(InterfaceAction):
             self.engine.metadata_index = None
 
 
-def get_icons(image_name, plugin_name):
-    """
-    Carrega ícone do plugin
-    Fallback para ícone padrão se não encontrado
+def get_plugin_icon():
+    """Carrega ícone do plugin.
+
+    Tenta, em ordem:
+    1. images/icon.png do zip do plugin (via API do Calibre)
+    2. Ícone built-in do Calibre (books_in_library)
+    3. Ícone do tema do sistema como último recurso
     """
     try:
-        from calibre.utils.config import config_dir
-        import os
-        icon_path = os.path.join(config_dir, 'plugins', plugin_name.lower(), image_name)
-        if os.path.exists(icon_path):
-            return QIcon(icon_path)
-    except:
+        from calibre.gui2 import get_icons
+        return get_icons('images/icon.png')
+    except Exception:
         pass
-    
-    # Ícone padrão
-    return QIcon.fromTheme('folder')
+    try:
+        from calibre.gui2 import I
+        return QIcon(I('books_in_library.png'))
+    except Exception:
+        pass
+    return QIcon.fromTheme('system-search')

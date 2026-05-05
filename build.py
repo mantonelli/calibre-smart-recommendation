@@ -60,11 +60,22 @@ def build(output_dir):
         print(f"ERRO: arquivos ausentes: {', '.join(missing)}", file=sys.stderr)
         sys.exit(1)
 
+    # Coleta arquivos de imagem opcionais (images/*.png, images/*.svg, etc.)
+    images_dir = os.path.join(SCRIPT_DIR, 'images')
+    image_files = []
+    if os.path.isdir(images_dir):
+        for fname in os.listdir(images_dir):
+            if fname.lower().endswith(('.png', '.svg', '.ico', '.jpg')):
+                image_files.append(os.path.join('images', fname))
+
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         for filename in PLUGIN_FILES:
             zf.write(os.path.join(SCRIPT_DIR, filename), arcname=filename)
+        for filename in image_files:
+            zf.write(os.path.join(SCRIPT_DIR, filename), arcname=filename)
 
-    print(f"Plugin v{version_str} → {zip_path}")
+    extras = f' + {len(image_files)} imagem(ns)' if image_files else ''
+    print(f"Plugin v{version_str}{extras} → {zip_path}")
     return zip_path
 
 
