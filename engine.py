@@ -7,10 +7,9 @@ Implementa similaridade por metadados com suporte opcional para TF-IDF
 """
 
 import os
-import pickle
+import json
 from collections import defaultdict
 from datetime import datetime
-import json
 
 
 class RecommendationEngine:
@@ -98,27 +97,70 @@ class RecommendationEngine:
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
         return cache_dir
+
+    def _serialize_index(self, index):
+        """Converte índice para formato JSON-serializável"""
+        def serialize_book(book):
+            b = dict(book)
+            if b['pubdate'] and hasattr(b['pubdate'], 'isoformat'):
+                b['pubdate'] = b['pubdate'].isoformat()
+            return b
+
+        return {
+            'books': {str(k): serialize_book(v) for k, v in index['books'].items()},
+            'tags': {k: list(v) for k, v in index['tags'].items()},
+            'authors': {k: list(v) for k, v in index['authors'].items()},
+            'series': {k: list(v) for k, v in index['series'].items()},
+            'publishers': {k: list(v) for k, v in index['publishers'].items()},
+            'languages': {k: list(v) for k, v in index['languages'].items()},
+            'last_updated': index['last_updated'],
+        }
+
+    def _deserialize_index(self, data):
+        """Reconstrói índice a partir de JSON"""
+        books = {}
+        for k, v in data['books'].items():
+            book = dict(v)
+            if book['pubdate'] and isinstance(book['pubdate'], str):
+                try:
+                    book['pubdate'] = datetime.fromisoformat(book['pubdate'])
+                except (ValueError, TypeError):
+                    book['pubdate'] = None
+            books[int(k)] = book
+
+        return {
+            'books': books,
+            'tags': defaultdict(set, {k: set(v) for k, v in data['tags'].items()}),
+            'authors': defaultdict(set, {k: set(v) for k, v in data['authors'].items()}),
+            'series': defaultdict(set, {k: set(v) for k, v in data['series'].items()}),
+            'publishers': defaultdict(set, {k: set(v) for k, v in data['publishers'].items()}),
+            'languages': defaultdict(set, {k: set(v) for k, v in data['languages'].items()}),
+            'last_updated': data.get('last_updated', ''),
+        }
     
     def build_index(self, force_rebuild=False):
         """
         Constrói índice de metadados para busca rápida
         Deve ser chamado ao iniciar o plugin ou quando biblioteca muda
         """
-        cache_file = os.path.join(self.cache_dir, 'metadata_index.pkl')
-        
+        cache_file = os.path.join(self.cache_dir, 'metadata_index.json')
+
         # Verifica se cache existe e está atualizado
         if not force_rebuild and os.path.exists(cache_file):
             try:
-                with open(cache_file, 'rb') as f:
-                    self.metadata_index = pickle.load(f)
-                    # Valida se número de livros bate
-                    current_count = len(self._get_all_book_ids())
-                    cached_count = len(self.metadata_index['books'])
-                    if cached_count == current_count:
-                        print(f"Cache válido encontrado: {cached_count} livros")
-                        return
-                    else:
-                        print(f"Cache desatualizado: {cached_count} != {current_count}")
+                # Invalida cache se metadata.db foi modificado após o cache
+                library_path = getattr(self.db, 'library_path', None)
+                if library_path:
+                    metadata_db = os.path.join(library_path, 'metadata.db')
+                    if os.path.exists(metadata_db):
+                        if os.path.getmtime(cache_file) < os.path.getmtime(metadata_db):
+                            print("Cache desatualizado: metadata.db modificado após cache")
+                            raise ValueError("stale cache")
+
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    self.metadata_index = self._deserialize_index(json.load(f))
+                    print(f"Cache válido encontrado: {len(self.metadata_index['books'])} livros")
+                    return
             except Exception as e:
                 print(f"Erro ao carregar cache: {e}")
         
@@ -190,8 +232,8 @@ class RecommendationEngine:
                 self.metadata_index['languages'][lang.lower()].add(book_id)
         
         # Salva cache
-        with open(cache_file, 'wb') as f:
-            pickle.dump(self.metadata_index, f)
+        with open(cache_file, 'w', encoding='utf-8') as f:
+            json.dump(self._serialize_index(self.metadata_index), f, ensure_ascii=False)
         
         print(f"Índice construído: {total} livros indexados")
     
@@ -206,7 +248,7 @@ class RecommendationEngine:
             'programming', 'python', 'java', 'javascript', 'c++', 'database',
             'algorithm', 'computer science', 'data science', 'machine learning',
             'ai', 'reference', 'tutorial', 'guide', 'manual', 'textbook',
-            'programming', 'development', 'software', 'engineering', 'network',
+            'development', 'software', 'engineering', 'network',
             'security', 'web', 'api', 'cloud', 'devops', 'tecnologia', 'computação'
         }
         
@@ -356,8 +398,8 @@ class RecommendationEngine:
                 score += weights['publisher']
         
         # Proximidade de ano
-        year1 = book1_info['pubdate'].year if book1_info['pubdate'] else None
-        year2 = book2_info['pubdate'].year if book2_info['pubdate'] else None
+        year1 = book1_info['pubdate'].year if book1_info['pubdate'] and hasattr(book1_info['pubdate'], 'year') else None
+        year2 = book2_info['pubdate'].year if book2_info['pubdate'] and hasattr(book2_info['pubdate'], 'year') else None
         score += weights['year'] * self.year_proximity(year1, year2)
         
         return score

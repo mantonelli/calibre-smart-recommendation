@@ -174,8 +174,8 @@ class RecommenderDialog(QDialog):
         
         book_id = self.table.item(current_row, 0).data(UserRole)
         
-        # Seleciona livro na biblioteca principal
-        self.gui.library_view.select_rows([book_id])
+        # Seleciona livro na biblioteca principal pelo ID (não por índice de linha)
+        self.gui.library_view.select_rows([book_id], using_ids=True)
         
         # Fecha o dialog
         self.accept()
@@ -313,7 +313,7 @@ class RecommenderAction(InterfaceAction):
             
             # Mostra dialog com recomendações
             dialog = RecommenderDialog(self.gui, book_id, recommendations)
-            dialog.exec_()
+            dialog.exec()
             
         except Exception as e:
             import traceback

@@ -140,7 +140,7 @@ class ConfigWidget(QWidget):
             import os
             from calibre.utils.config import config_dir
             cache_dir = os.path.join(config_dir, 'plugins', 'recommender_cache')
-            cache_file = os.path.join(cache_dir, 'metadata_index.pkl')
+            cache_file = os.path.join(cache_dir, 'metadata_index.json')
             
             if os.path.exists(cache_file):
                 os.remove(cache_file)

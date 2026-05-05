@@ -2,15 +2,17 @@
 
 ## P0 — Bugs críticos / segurança
 
-- [ ] **[engine.py:193]** Cache em `pickle` → substituir por JSON (pickle executa código arbitrário no load)
-- [ ] **[ui.py:178]** `select_rows([book_id])` seleciona por row index, não book_id → livro errado selecionado na biblioteca
+- [x] **[engine.py:193]** Cache em `pickle` → substituído por JSON (pickle executa código arbitrário no load)
+- [x] **[ui.py:178]** `select_rows([book_id])` seleciona por row index, não book_id → corrigido com `using_ids=True`
 
 ## P1 — Bugs funcionais
 
-- [ ] **[engine.py:116-117]** Validação de cache só por contagem → cache stale se mesmo nº de livros mas metadados mudaram (usar hash ou timestamp)
-- [ ] **[engine.py:359]** `pubdate.year` sem guard → crash se `pubdate` mal tipado ou None inesperado
-- [ ] **[ui.py:316]** `exec_()` deprecated no PyQt6 → usar `exec()`
-- [ ] **[engine.py:205]** `'programming'` duplicado no set `technical_keywords`
+- [ ] **[ui.py:256-273]** `QProgressDialog` de indexação não renderiza conteúdo — `build_index()` bloqueia a main thread, impedindo o Qt de pintar o dialog. Mover indexação para `QThread` + emitir sinais de progresso, ou chamar `QApplication.processEvents()` a cada N livros indexados no engine.
+
+- [x] **[engine.py:116-117]** Validação de cache só por contagem → agora compara mtime do cache com mtime de `metadata.db`
+- [x] **[engine.py:359]** `pubdate.year` sem guard → adicionado `hasattr(..., 'year')` antes de acessar
+- [x] **[ui.py:316]** `exec_()` deprecated no PyQt6 → `exec()`
+- [x] **[engine.py:205]** `'programming'` duplicado no set `technical_keywords` → removido
 
 ## P2 — Qualidade / UX
 
