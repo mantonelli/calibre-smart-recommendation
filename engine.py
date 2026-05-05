@@ -402,7 +402,22 @@ class RecommendationEngine:
         score += weights['year'] * self.year_proximity(year1, year2)
         
         return score
-    
+
+    def _is_read(self, book_id, column_label):
+        """Verifica se livro está marcado como lido na coluna customizada.
+
+        column_label: rótulo sem '#' (ex: 'read', 'lido').
+        Retorna False em caso de erro ou coluna inexistente.
+        """
+        label = column_label.lstrip('#')
+        try:
+            if self.use_new_api:
+                return bool(self.db.new_api.field_for(f'#{label}', book_id))
+            else:
+                return bool(self.db.get_custom(book_id, label=label, index_is_id=True))
+        except Exception:
+            return False
+
     def recommend(self, book_id, top_n=20):
         """
         Recomenda livros similares
@@ -434,6 +449,15 @@ class RecommendationEngine:
 
         # Pré-filtra candidatos
         candidates = self.pre_filter(book_info)
+
+        # Filtro de livros não lidos (opcional)
+        filter_unread = self.prefs.get('filter_unread', False)
+        read_column = self.prefs.get('read_column', '').strip()
+        if filter_unread and read_column:
+            before = len(candidates)
+            candidates = {cid for cid in candidates if not self._is_read(cid, read_column)}
+            log.debug("Filtro não lidos: %d → %d candidatos (coluna=#%s)",
+                      before, len(candidates), read_column)
 
         if not candidates:
             lang_counts = {}

@@ -22,7 +22,7 @@
 - [x] **[config.py:136-152]** Botão "Reconstruir Índice" só apaga cache, não reconstrói imediatamente → renomeado para "Limpar Cache do Índice"; mensagens e tooltip explicam que reindexação ocorre na próxima pesquisa.
 - [ ] **[ui.py:195]** `icon.png` não existe no projeto → `get_icons` sempre usa fallback; adicionar ícone ou simplificar
 - [x] Botão funciona como split button: clique principal recomenda, seta abre menu com "Configurações..." e "Reindexar Biblioteca". Lógica de indexação extraída para `_build_index_with_progress()` reutilizável.
-- [ ] Tela de configuração deve prever a possibilidade do usuário optar pelas sugestões serem feitas apenas entre livros não lidos. Se o usuário optar por desconsiderar os lidos, na tela de configurações deverá informar o nome da coluna (booleana) que armazena essa informação.
+- [x] Filtro de livros não lidos: config.py ganhou seção "Filtro de Leitura" com checkbox + campo de coluna (desabilitado quando filtro inativo). engine.py filtra candidatos via `_is_read()` consultando a coluna customizada booleana (new_api e legacy).
 
 ## P3 — Manutenção
 

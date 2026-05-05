@@ -7,13 +7,15 @@ Widget de Configuração do Plugin
 
 try:
     # Calibre 8.x usa PyQt6
-    from PyQt6.Qt import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, 
-                          QSpinBox, QPushButton, QGroupBox, QFormLayout, QMessageBox)
+    from PyQt6.Qt import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox,
+                          QSpinBox, QPushButton, QGroupBox, QFormLayout, QMessageBox,
+                          QLineEdit)
     StandardButton = QMessageBox.StandardButton
 except ImportError:
     # Fallback para PyQt5
-    from PyQt5.Qt import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, 
-                          QSpinBox, QPushButton, QGroupBox, QFormLayout, QMessageBox)
+    from PyQt5.Qt import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox,
+                          QSpinBox, QPushButton, QGroupBox, QFormLayout, QMessageBox,
+                          QLineEdit)
     StandardButton = QMessageBox
 
 from calibre.utils.config import JSONConfig
@@ -30,6 +32,8 @@ class ConfigWidget(QWidget):
         self.prefs.defaults['use_tfidf'] = False
         self.prefs.defaults['min_similarity'] = 0.1
         self.prefs.defaults['default_top_n'] = 20
+        self.prefs.defaults['filter_unread'] = False
+        self.prefs.defaults['read_column'] = ''
         
         self._setup_ui()
         self._load_settings()
@@ -71,7 +75,32 @@ class ConfigWidget(QWidget):
         algo_layout.addRow('Similaridade mínima:', self.min_sim_spinbox)
         
         layout.addWidget(algo_group)
-        
+
+        # Grupo: Filtro de Leitura
+        filter_group = QGroupBox('Filtro de Leitura')
+        filter_layout = QFormLayout()
+        filter_group.setLayout(filter_layout)
+
+        self.filter_unread_checkbox = QCheckBox()
+        self.filter_unread_checkbox.setToolTip(
+            'Quando ativado, as recomendações incluirão apenas\n'
+            'livros ainda não marcados como lidos.'
+        )
+        self.filter_unread_checkbox.toggled.connect(self._on_filter_toggled)
+        filter_layout.addRow('Sugerir apenas livros não lidos:', self.filter_unread_checkbox)
+
+        self.read_column_label = QLabel('Coluna de leitura:')
+        self.read_column_input = QLineEdit()
+        self.read_column_input.setPlaceholderText('ex: read, lido, ja_li')
+        self.read_column_input.setToolTip(
+            'Nome da coluna booleana personalizada que indica se o livro foi lido.\n'
+            'Use apenas o rótulo da coluna, sem o prefixo "#".\n'
+            'Exemplo: se a coluna se chama "#read", informe apenas "read".'
+        )
+        filter_layout.addRow(self.read_column_label, self.read_column_input)
+
+        layout.addWidget(filter_group)
+
         # Grupo: Cache
         cache_group = QGroupBox('Gerenciamento de Cache')
         cache_layout = QVBoxLayout()
@@ -117,17 +146,28 @@ class ConfigWidget(QWidget):
         
         layout.addStretch()
     
+    def _on_filter_toggled(self, checked):
+        """Habilita/desabilita campo de coluna conforme checkbox."""
+        self.read_column_label.setEnabled(checked)
+        self.read_column_input.setEnabled(checked)
+
     def _load_settings(self):
         """Carrega configurações salvas"""
         self.tfidf_checkbox.setChecked(self.prefs.get('use_tfidf', False))
         self.top_n_spinbox.setValue(self.prefs.get('default_top_n', 20))
         self.min_sim_spinbox.setValue(int(self.prefs.get('min_similarity', 0.1) * 100))
-    
+        filter_unread = self.prefs.get('filter_unread', False)
+        self.filter_unread_checkbox.setChecked(filter_unread)
+        self.read_column_input.setText(self.prefs.get('read_column', ''))
+        self._on_filter_toggled(filter_unread)
+
     def save_settings(self):
         """Salva configurações"""
         self.prefs['use_tfidf'] = self.tfidf_checkbox.isChecked()
         self.prefs['default_top_n'] = self.top_n_spinbox.value()
         self.prefs['min_similarity'] = self.min_sim_spinbox.value() / 100.0
+        self.prefs['filter_unread'] = self.filter_unread_checkbox.isChecked()
+        self.prefs['read_column'] = self.read_column_input.text().strip()
     
     def _clear_index_cache(self):
         """Remove o cache do índice para forçar reindexação na próxima pesquisa."""
