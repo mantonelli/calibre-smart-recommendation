@@ -8,7 +8,6 @@ A [Calibre](https://calibre-ebook.com/) plugin that recommends similar books fro
 - **Automatic category detection** — adjusts scoring weights for technical vs. fiction books based on tags
 - **Book detail panel** — shows cover, authors, series, tags, rating, and formats for each recommendation without leaving the dialog
 - **Unread filter** — optionally restrict recommendations to books not yet marked as read via a custom boolean column
-- **Optional TF-IDF analysis** — text-based scoring from book descriptions/comments when `scikit-learn` is available
 - **Per-library index cache** — JSON cache keyed by library, invalidated automatically when `metadata.db` changes
 - **Split toolbar button** — main click recommends; dropdown opens Settings and Re-index
 - **PyQt5 / PyQt6 compatible** — works on Calibre 5.x through 8.x on Windows, macOS, and Linux
@@ -18,7 +17,6 @@ A [Calibre](https://calibre-ebook.com/) plugin that recommends similar books fro
 | Requirement | Notes |
 |---|---|
 | Calibre ≥ 5.0.0 | Python is bundled — no separate install needed |
-| scikit-learn | **Optional.** Enables TF-IDF mode for text-based scoring |
 
 ## Installation
 
@@ -57,13 +55,12 @@ Open settings via the toolbar dropdown → **Configurações...** or via Calibre
 
 | Setting | Default | Description |
 |---|---|---|
-| Use TF-IDF analysis | Off | Text-based scoring using book descriptions. Requires `scikit-learn`. Slower on first run. |
 | Number of recommendations | 20 | Results to show per search (5–50). |
 | Minimum similarity | 10% | Results below this threshold are hidden (0–100%). |
 | Suggest only unread books | Off | Hides books already marked as read in your library. |
 | Read column | *(empty)* | Name of the custom boolean column that flags a book as read. Omit the `#` prefix — e.g. use `read`, not `#read`. |
 
-Changing **Use TF-IDF** or **Minimum similarity** invalidates the index automatically. Changing only the unread filter or number of results does not require re-indexing.
+Changing **Minimum similarity** invalidates the index automatically. Changing only the unread filter or number of results does not require re-indexing.
 
 ## How it works
 
@@ -131,7 +128,7 @@ Tags: Fantasy, Epic, Trilogy, Brandon Sanderson
 
 - Metadata is sparse or inconsistent.
 - Tags are personal notes rather than descriptive genre/topic labels.
-- **Fix:** review and standardise tags across your library. Consider enabling TF-IDF if `scikit-learn` is available.
+- **Fix:** review and standardise tags across your library.
 
 ### First indexing is slow
 
@@ -165,10 +162,106 @@ calibre-debug -g         # launches Calibre with debug output
 
 ### Adding a translation
 
-1. Extract strings with `xgettext` (or `pygettext`) targeting `ui.py`, `config.py`, and `engine.py`.
-2. Create `translations/<locale>.po` and fill in translations.
-3. Compile: `msgfmt translations/<locale>.po -o translations/<locale>.mo`.
-4. Run `python build.py` — compiled `.mo` files in `translations/` are included in the ZIP automatically.
+The plugin has ~74 translatable strings spread across `ui.py`, `config.py`, and `engine.py`. Calibre loads translations from compiled `.mo` files in the `translations/` directory, matching the system locale automatically.
+
+#### Prerequisites
+
+Install the GNU gettext utilities:
+
+```bash
+# Debian / Ubuntu
+sudo apt install gettext
+
+# macOS (Homebrew)
+brew install gettext
+
+# Windows
+# Download from https://mlocati.github.io/articles/gettext-iconv-windows.html
+```
+
+Alternatively, use [Poedit](https://poedit.net/) — a graphical editor that handles extraction, editing, and compilation in one tool.
+
+#### Step 1 — Generate the POT template
+
+Run this from the repository root to extract all translatable strings into a single template file:
+
+```bash
+xgettext --language=Python --keyword=_ \
+  --output=translations/recommender.pot \
+  ui.py config.py engine.py
+```
+
+The `.pot` file is the source of truth for all strings that need translation. Re-run this command whenever source files change to pick up new or modified strings.
+
+#### Step 2 — Create a PO file for your locale
+
+```bash
+# Replace <locale> with your language code (see table below)
+msginit --input=translations/recommender.pot \
+        --locale=<locale> \
+        --output=translations/<locale>.po
+```
+
+If a `.po` file for your locale already exists and you want to update it with new strings from the POT:
+
+```bash
+msgmerge --update translations/<locale>.po translations/recommender.pot
+```
+
+#### Step 3 — Translate the strings
+
+Open the `.po` file in a text editor or Poedit and fill in the `msgstr` fields:
+
+```po
+msgid "Recomendações de Livros Similares"
+msgstr "Similar Book Recommendations"
+
+msgid "Similaridade"
+msgstr "Similarity"
+```
+
+Leave `msgstr` empty for any string you want to fall back to the original Portuguese.
+
+#### Step 4 — Compile and test
+
+```bash
+msgfmt translations/<locale>.po -o translations/<locale>.mo
+```
+
+Then reinstall the plugin from source so Calibre picks up the new `.mo` file:
+
+```bash
+calibre-customize -a .
+calibre-debug -g
+```
+
+#### Step 5 — Package and share
+
+```bash
+python build.py
+```
+
+`build.py` includes all `.mo` files from `translations/` in the ZIP automatically. Share the `.po` and `.mo` files via a pull request or attach them to an issue.
+
+#### Locale code reference
+
+Use the locale code that matches Calibre's interface language setting:
+
+| Language | Locale code |
+|---|---|
+| English | `en` |
+| Spanish | `es` |
+| French | `fr` |
+| German | `de` |
+| Italian | `it` |
+| Japanese | `ja` |
+| Chinese (Simplified) | `zh_CN` |
+| Chinese (Traditional) | `zh_TW` |
+| Russian | `ru` |
+| Dutch | `nl` |
+| Polish | `pl` |
+
+For other languages, use the [IETF BCP 47](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry) language tag (e.g. `pt_PT`, `ko`, `ar`).
 
 ## License
 
