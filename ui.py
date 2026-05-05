@@ -365,7 +365,7 @@ class RecommenderAction(InterfaceAction):
 
     def genesis(self):
         """Inicializa a action"""
-        self.qaction.setIcon(get_plugin_icon())
+        self.qaction.setIcon(self._load_plugin_icon())
         self.qaction.triggered.connect(self.show_recommendations)
         self.engine = None
 
@@ -379,6 +379,29 @@ class RecommenderAction(InterfaceAction):
     # ------------------------------------------------------------------
     # Helpers internos
     # ------------------------------------------------------------------
+
+    def _load_plugin_icon(self):
+        """Carrega ícone do zip do plugin, com fallbacks."""
+        try:
+            data = self.interface_action_base_plugin.load_resources(['images/icon.png'])
+            icon_bytes = data.get('images/icon.png')
+            if icon_bytes:
+                pm = QPixmap()
+                pm.loadFromData(icon_bytes)
+                icon = QIcon(pm)
+                if not icon.isNull():
+                    return icon
+        except Exception:
+            pass
+        try:
+            from calibre.gui2 import I
+            for name in ('books_in_library.png', 'book.png', 'search.png'):
+                icon = QIcon(I(name))
+                if not icon.isNull():
+                    return icon
+        except Exception:
+            pass
+        return QIcon()
 
     def load_preferences(self):
         from calibre.utils.config import JSONConfig
@@ -561,21 +584,17 @@ class RecommenderAction(InterfaceAction):
 
 
 def get_plugin_icon():
-    """Carrega ícone do plugin.
-
-    Tenta, em ordem:
-    1. images/icon.png do zip do plugin (via API do Calibre)
-    2. Ícone built-in do Calibre (books_in_library)
-    3. Ícone do tema do sistema como último recurso
-    """
-    try:
-        from calibre.gui2 import get_icons
-        return get_icons('images/icon.png')
-    except Exception:
-        pass
+    """Carrega ícone do plugin com fallbacks."""
     try:
         from calibre.gui2 import I
-        return QIcon(I('books_in_library.png'))
+        for name in ('books_in_library.png', 'book.png', 'search.png'):
+            icon = QIcon(I(name))
+            if not icon.isNull():
+                return icon
     except Exception:
         pass
-    return QIcon.fromTheme('system-search')
+    for theme_name in ('system-search', 'book', 'find'):
+        icon = QIcon.fromTheme(theme_name)
+        if not icon.isNull():
+            return icon
+    return QIcon()

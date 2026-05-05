@@ -9,8 +9,10 @@ Uso: python build.py [--output DIR]
 import argparse
 import ast
 import os
+import struct
 import sys
 import zipfile
+import zlib
 
 PLUGIN_FILES = [
     '__init__.py',
@@ -21,6 +23,62 @@ PLUGIN_FILES = [
 ]
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def create_icon():
+    """Gera ícone de livro 32×32 PNG usando apenas stdlib."""
+    W, H = 32, 32
+
+    BG     = (235, 235, 235)
+    SPINE  = (45,  35, 110)
+    COVER  = (70,  55, 155)
+    PAGE   = (248, 244, 230)
+    LINE   = (185, 175, 150)
+    BORDER = (25,  18,  75)
+
+    px = [[BG] * W for _ in range(H)]
+
+    def fill(r1, c1, r2, c2, color):
+        for r in range(r1, r2 + 1):
+            for c in range(c1, c2 + 1):
+                if 0 <= r < H and 0 <= c < W:
+                    px[r][c] = color
+
+    fill(2, 5, 29, 26, COVER)
+    fill(2, 5, 29,  9, SPINE)
+    fill(3, 22, 28, 26, PAGE)
+
+    for r in range(2, 30):
+        px[r][5]  = BORDER
+        px[r][26] = BORDER
+    for c in range(5, 27):
+        px[2][c]  = BORDER
+        px[29][c] = BORDER
+
+    for r in range(3, 29):
+        px[r][7] = (min(255, SPINE[0] + 30), min(255, SPINE[1] + 25), min(255, SPINE[2] + 45))
+
+    for r in (9, 14, 19, 24):
+        for c in range(23, 26):
+            px[r][c] = LINE
+
+    def make_chunk(tag, data):
+        crc = zlib.crc32(tag + data) & 0xFFFFFFFF
+        return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', crc)
+
+    raw = bytearray()
+    for row in px:
+        raw.append(0)
+        for r, g, b in row:
+            raw += bytes([r, g, b])
+
+    ihdr = struct.pack('>IIBBBBB', W, H, 8, 2, 0, 0, 0)
+    return (
+        b'\x89PNG\r\n\x1a\n'
+        + make_chunk(b'IHDR', ihdr)
+        + make_chunk(b'IDAT', zlib.compress(bytes(raw), 9))
+        + make_chunk(b'IEND', b'')
+    )
 
 
 def read_version():
@@ -60,8 +118,13 @@ def build(output_dir):
         print(f"ERRO: arquivos ausentes: {', '.join(missing)}", file=sys.stderr)
         sys.exit(1)
 
-    # Coleta arquivos de imagem opcionais (images/*.png, images/*.svg, etc.)
+    # Garante ícone atualizado em images/icon.png
     images_dir = os.path.join(SCRIPT_DIR, 'images')
+    os.makedirs(images_dir, exist_ok=True)
+    with open(os.path.join(images_dir, 'icon.png'), 'wb') as _f:
+        _f.write(create_icon())
+
+    # Coleta arquivos de imagem (images/*.png, images/*.svg, etc.)
     image_files = []
     if os.path.isdir(images_dir):
         for fname in os.listdir(images_dir):
