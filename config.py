@@ -179,15 +179,27 @@ class ConfigWidget(QWidget):
 
         if reply == StandardButton.Yes:
             import os
+            import glob
             from calibre.utils.config import config_dir
-            cache_file = os.path.join(
-                config_dir, 'plugins', 'recommender_cache', 'metadata_index.json'
-            )
+            cache_dir = os.path.join(config_dir, 'plugins', 'recommender_cache')
+
+            # Remove caches de todas as bibliotecas (metadata_index_*.json)
+            # e também o formato antigo sem hash para retrocompatibilidade
+            patterns = [
+                os.path.join(cache_dir, 'metadata_index_*.json'),
+                os.path.join(cache_dir, 'metadata_index.json'),
+            ]
+            files = []
+            for pattern in patterns:
+                files.extend(glob.glob(pattern))
 
             removed = False
-            if os.path.exists(cache_file):
-                os.remove(cache_file)
-                removed = True
+            for f in files:
+                try:
+                    os.remove(f)
+                    removed = True
+                except OSError:
+                    pass
 
             msg = (
                 _('Cache removido com sucesso.\n\n'

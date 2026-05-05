@@ -13,6 +13,8 @@
 - [x] **[engine.py:359]** `pubdate.year` sem guard → adicionado `hasattr(..., 'year')` antes de acessar
 - [x] **[ui.py:316]** `exec_()` deprecated no PyQt6 → `exec()`
 - [x] **[engine.py:205]** `'programming'` duplicado no set `technical_keywords` → removido
+- [x] **[ui.py:show_recommendations]** `recommend()` chamado com `top_n=20` hardcoded, ignorando a preferência `default_top_n` do usuário.
+- [x] **[engine.py:_get_cache_dir]** Cache não isola por biblioteca — path fixo sobrescreve índice ao trocar de biblioteca. Corrigido com hash do `library_path` no nome do arquivo.
 
 ## P2 — Qualidade / UX
 
@@ -25,6 +27,12 @@
 - [x] Filtro de livros não lidos: config.py ganhou seção "Filtro de Leitura" com checkbox + campo de coluna (desabilitado quando filtro inativo). engine.py filtra candidatos via `_is_read()` consultando a coluna customizada booleana (new_api e legacy).
 - [x] Prever internacionalização dos textos usados no plugin → `load_translations()` em `__init__.py`; guard `try: _ except NameError` em `ui.py` e `config.py`; todas as strings UI envolvidas com `_()`; f-strings dinâmicas convertidas para `_('template {x}').format(x=x)`; `build.py` inclui `translations/*.mo`.
 - [x] Quando existe um filtro aplicado na biblioteca e um livro recomedado é selecionado, esse livro não é apresentado se não fizer parte do filtro atual. → `_on_view_book` limpa busca via `gui.search.clear()` quando `current_id` difere do esperado após `select_rows`.
+- [x] **[engine.py:detect_category]** Heurística `PDF → técnico` falsa positiva para romances em PDF. Removida; categoria determinada exclusivamente por tags e keywords.
+- [x] **[ui.py:apply_settings]** `apply_settings` invalida índice mesmo quando só mudou o filtro de leitura (não requer reindexação). Corrigido: só invalida se mudou `use_tfidf` ou `min_similarity`.
+- [x] **[engine.py:recommend]** `_is_read` consultado individualmente por candidato a cada busca → construído set de IDs lidos uma vez no início de `recommend()`.
+- [ ] **[engine.py:get_explanation]** Strings da coluna "Razão" (`"Mesmo autor:"`, `"Série:"`, `"Tags:"`, etc.) não passaram pelo wrap de i18n.
+- [ ] **[engine.py:pre_filter]** Editora não é usada como fonte de candidatos no pré-filtro, mas entra no score. Livros com zero tags e mesma editora nunca chegam ao scoring.
+- [ ] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub.
 
 ## P3 — Manutenção
 

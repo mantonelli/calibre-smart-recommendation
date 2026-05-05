@@ -94,12 +94,18 @@ class RecommendationEngine:
             }
     
     def _get_cache_dir(self):
-        """Obtém diretório de cache do plugin"""
         from calibre.utils.config import config_dir
         cache_dir = os.path.join(config_dir, 'plugins', 'recommender_cache')
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
         return cache_dir
+
+    def _cache_file(self):
+        """Caminho do cache específico para a biblioteca atual."""
+        import hashlib
+        library_path = getattr(self.db, 'library_path', '') or ''
+        lib_hash = hashlib.md5(library_path.encode()).hexdigest()[:8]
+        return os.path.join(self.cache_dir, f'metadata_index_{lib_hash}.json')
 
     def _serialize_index(self, index):
         """Converte índice para formato JSON-serializável"""
@@ -149,7 +155,7 @@ class RecommendationEngine:
         Args:
             progress_callback: callable(current: int, total: int) chamado a cada N livros
         """
-        cache_file = os.path.join(self.cache_dir, 'metadata_index.json')
+        cache_file = self._cache_file()
 
         # Verifica se cache existe e está atualizado
         if not force_rebuild and os.path.exists(cache_file):
@@ -262,15 +268,9 @@ class RecommendationEngine:
             'security', 'web', 'api', 'cloud', 'devops', 'tecnologia', 'computação'
         }
         
-        # Verifica tags
         tags_lower = [t.lower() for t in book_info['tags']]
         if any(keyword in ' '.join(tags_lower) for keyword in technical_keywords):
             return 'technical'
-        
-        # Heurística: PDFs tendem a ser técnicos
-        if 'PDF' in book_info['formats']:
-            return 'technical'
-        
         return 'fiction'
     
     def jaccard_similarity(self, set1, set2):
@@ -404,11 +404,7 @@ class RecommendationEngine:
         return score
 
     def _is_read(self, book_id, column_label):
-        """Verifica se livro está marcado como lido na coluna customizada.
-
-        column_label: rótulo sem '#' (ex: 'read', 'lido').
-        Retorna False em caso de erro ou coluna inexistente.
-        """
+        """Verifica se livro está marcado como lido na coluna customizada."""
         label = column_label.lstrip('#')
         try:
             if self.use_new_api:
@@ -417,6 +413,21 @@ class RecommendationEngine:
                 return bool(self.db.get_custom(book_id, label=label, index_is_id=True))
         except Exception:
             return False
+
+    def _get_read_ids(self, column_label):
+        """Retorna set de IDs marcados como lidos via uma única query."""
+        label = column_label.lstrip('#')
+        query = f'#{label}:true'
+        try:
+            if self.use_new_api:
+                result = self.db.new_api.search(query)
+            else:
+                result = self.db.search_getting_ids(query, '')
+            return set(result) if result else set()
+        except Exception:
+            # Fallback: verificação individual se a query falhar
+            log.warning("_get_read_ids: query '%s' falhou, usando fallback por livro", query)
+            return {bid for bid in self.metadata_index['books'] if self._is_read(bid, label)}
 
     def recommend(self, book_id, top_n=20):
         """
@@ -450,14 +461,15 @@ class RecommendationEngine:
         # Pré-filtra candidatos
         candidates = self.pre_filter(book_info)
 
-        # Filtro de livros não lidos (opcional)
+        # Filtro de livros não lidos (opcional) — uma query, não N chamadas
         filter_unread = self.prefs.get('filter_unread', False)
         read_column = self.prefs.get('read_column', '').strip()
         if filter_unread and read_column:
             before = len(candidates)
-            candidates = {cid for cid in candidates if not self._is_read(cid, read_column)}
-            log.debug("Filtro não lidos: %d → %d candidatos (coluna=#%s)",
-                      before, len(candidates), read_column)
+            read_ids = self._get_read_ids(read_column)
+            candidates -= read_ids
+            log.debug("Filtro não lidos: %d → %d candidatos (coluna=#%s, lidos=%d)",
+                      before, len(candidates), read_column, len(read_ids))
 
         if not candidates:
             lang_counts = {}

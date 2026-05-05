@@ -465,13 +465,26 @@ class RecommenderAction(InterfaceAction):
         config_widget = ConfigWidget()
         layout.addWidget(config_widget)
 
+        # Captura settings que exigem reindexação ANTES de salvar
+        algo_before = (
+            config_widget.prefs.get('use_tfidf', False),
+            config_widget.prefs.get('min_similarity', 0.1),
+        )
+
         buttons = QDialogButtonBox(OkCancel)
         buttons.accepted.connect(lambda: (config_widget.save_settings(), d.accept()))
         buttons.rejected.connect(d.reject)
         layout.addWidget(buttons)
 
         d.exec() if PYQT6 else d.exec_()
-        self.apply_settings()
+
+        # Invalida índice apenas se configurações de algoritmo mudaram
+        algo_after = (
+            config_widget.prefs.get('use_tfidf', False),
+            config_widget.prefs.get('min_similarity', 0.1),
+        )
+        if algo_after != algo_before:
+            self.apply_settings()
 
     def _force_reindex(self):
         db = self.gui.current_db
@@ -530,7 +543,8 @@ class RecommenderAction(InterfaceAction):
             progress.show()
 
             try:
-                recommendations = self.engine.recommend(book_id, top_n=20)
+                top_n = self.engine.prefs.get('default_top_n', 20)
+                recommendations = self.engine.recommend(book_id, top_n=top_n)
                 log.debug("%d recomendações encontradas", len(recommendations))
             except Exception as e:
                 import traceback
