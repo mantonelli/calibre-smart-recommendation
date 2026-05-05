@@ -1,2 +1,5 @@
-.claude/
 dist/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
