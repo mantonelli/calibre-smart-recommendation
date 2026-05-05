@@ -16,6 +16,8 @@
 
 ## P2 — Qualidade / UX
 
+- [x] **[ui.py:94-106]** Colunas da tabela de recomendações truncadas e não redimensionáveis — `Stretch`/`ResizeToContents` substituídos por `Interactive` em todas + `setStretchLastSection(True)` na coluna Razão. Larguras iniciais: Título 220px, Autor 180px, Similaridade 100px.
+
 - [ ] **[ui.py:150-163]** `_populate_table` cria engine temporário por livro se `gui._recommender_engine` ausente → garantir que engine sempre propagado
 - [ ] **[config.py:136-152]** Botão "Reconstruir Índice" só apaga cache, não reconstrói imediatamente → UX enganosa; reconstrói na hora ou avisa claramente
 - [ ] **[ui.py:195]** `icon.png` não existe no projeto → `get_icons` sempre usa fallback; adicionar ícone ou simplificar

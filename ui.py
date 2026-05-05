@@ -111,21 +111,24 @@ class RecommenderDialog(QDialog):
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
         
-        # Ajusta largura das colunas
+        # Ajusta largura das colunas: todas interativas (redimensionáveis pelo usuário);
+        # última coluna (Razão) estica para preencher espaço restante.
         header = self.table.horizontalHeader()
-        # Tenta PyQt6 primeiro, depois fallback para PyQt5
+        header.setMinimumSectionSize(80)
+        header.setStretchLastSection(True)
+
         try:
-            # PyQt6 (Calibre 8.x)
-            header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-            header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-            header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-            header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+            interactive = QHeaderView.ResizeMode.Interactive
         except AttributeError:
-            # PyQt5 (Calibre antigo)
-            header.setSectionResizeMode(0, QHeaderView.Stretch)
-            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-            header.setSectionResizeMode(3, QHeaderView.Stretch)
+            interactive = QHeaderView.Interactive
+
+        for col in range(3):
+            header.setSectionResizeMode(col, interactive)
+
+        self.table.setColumnWidth(0, 220)   # Título
+        self.table.setColumnWidth(1, 180)   # Autor(es)
+        self.table.setColumnWidth(2, 100)   # Similaridade
+        # col 3 (Razão) preenchida via setStretchLastSection
         
         # Double-click abre livro
         self.table.doubleClicked.connect(self._on_book_double_clicked)
