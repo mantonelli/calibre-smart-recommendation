@@ -23,6 +23,8 @@
 - [x] **[ui.py:195]** `icon.png` não existe → `get_icons` substituída por `get_plugin_icon()` que usa `calibre.gui2.get_icons` (carrega do zip), depois `I('books_in_library.png')`, depois tema do sistema. `build.py` inclui `images/` automaticamente quando presente.
 - [x] Botão funciona como split button: clique principal recomenda, seta abre menu com "Configurações..." e "Reindexar Biblioteca". Lógica de indexação extraída para `_build_index_with_progress()` reutilizável.
 - [x] Filtro de livros não lidos: config.py ganhou seção "Filtro de Leitura" com checkbox + campo de coluna (desabilitado quando filtro inativo). engine.py filtra candidatos via `_is_read()` consultando a coluna customizada booleana (new_api e legacy).
+- [ ] Prever internacionalização dos textos usados no plugin
+- [x] Quando existe um filtro aplicado na biblioteca e um livro recomedado é selecionado, esse livro não é apresentado se não fizer parte do filtro atual. → `_on_view_book` limpa busca via `gui.search.clear()` quando `current_id` difere do esperado após `select_rows`.
 
 ## P3 — Manutenção
 

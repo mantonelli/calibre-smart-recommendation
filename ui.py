@@ -343,14 +343,21 @@ class RecommenderDialog(QDialog):
         current_row = self.table.currentRow()
         if current_row < 0:
             return
-        
+
         book_id = self.table.item(current_row, 0).data(UserRole)
-        
-        # Seleciona livro na biblioteca principal pelo ID (não por índice de linha)
-        self.gui.library_view.select_rows([book_id], using_ids=True)
-        
-        # Fecha o dialog
         self.accept()
+
+        self.gui.library_view.select_rows([book_id], using_ids=True)
+
+        # Se livro não aparece no filtro atual, limpa busca e tenta novamente
+        if getattr(self.gui.library_view, 'current_id', None) != book_id:
+            try:
+                self.gui.search.clear()
+            except Exception:
+                pass
+            self.gui.library_view.select_rows([book_id], using_ids=True)
+
+        self.gui.library_view.scrollTo(self.gui.library_view.currentIndex())
 
 
 class RecommenderAction(InterfaceAction):
