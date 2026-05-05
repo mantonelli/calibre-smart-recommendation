@@ -11,25 +11,30 @@ try:
     # Calibre 8.x usa PyQt6
     from PyQt6.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
-                          QAbstractItemView, Qt, QIcon)
+                          QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
+                          QDialogButtonBox)
     from PyQt6.QtCore import QThread, pyqtSignal, QEventLoop
-    # PyQt6 mudou alguns enums
     PYQT6 = True
     SelectRows = QAbstractItemView.SelectionBehavior.SelectRows
     SingleSelection = QAbstractItemView.SelectionMode.SingleSelection
     UserRole = Qt.ItemDataRole.UserRole
     WindowModal = Qt.WindowModality.WindowModal
+    PopupMode = QToolButton.ToolButtonPopupMode.MenuButtonPopup
+    OkCancel = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
 except (ImportError, AttributeError):
     # Fallback para PyQt5 (versões antigas do Calibre)
     from PyQt5.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
-                          QAbstractItemView, Qt, QIcon)
+                          QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
+                          QDialogButtonBox)
     from PyQt5.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = False
     SelectRows = QAbstractItemView.SelectRows
     SingleSelection = QAbstractItemView.SingleSelection
     UserRole = Qt.UserRole
     WindowModal = Qt.WindowModal
+    PopupMode = QToolButton.MenuButtonPopup
+    OkCancel = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
 from calibre.gui2 import error_dialog, info_dialog
 from calibre.gui2.actions import InterfaceAction
@@ -197,164 +202,206 @@ class RecommenderAction(InterfaceAction):
     """
     Action principal do plugin - adiciona botão na interface
     """
-    
+
     name = 'Smart Book Recommender'
     action_spec = ('Recomendar Similares', None, 'Encontra livros similares ao selecionado', None)
     action_type = 'current'
-    
+    popup_type = PopupMode  # split button: clique → recomendar, seta → menu
+
     def genesis(self):
         """Inicializa a action"""
         icon = get_icons('images/icon.png', 'Recommender')
         self.qaction.setIcon(icon)
         self.qaction.triggered.connect(self.show_recommendations)
-        
-        # Inicializa engine
         self.engine = None
-    
-    def show_recommendations(self):
-        """Mostra dialog de recomendações"""
-        # Verifica se há livro selecionado
-        rows = self.gui.library_view.selectionModel().selectedRows()
-        if not rows or len(rows) == 0:
-            error_dialog(self.gui, 'Nenhum livro selecionado',
-                        'Por favor, selecione um livro para obter recomendações.',
-                        show=True)
-            return
-        
-        try:
-            # Obtém book_id correto através da API do Calibre
-            db = self.gui.current_db
-            
-            # Método correto para Calibre 8.x
-            if hasattr(self.gui.library_view, 'current_id'):
-                book_id = self.gui.library_view.current_id
-            else:
-                # Fallback: pega da seleção
-                row = rows[0]
-                book_id = self.gui.library_view.model().id(row)
-            
-            if book_id is None or book_id < 1:
-                error_dialog(self.gui, 'Erro', 'Não foi possível obter ID do livro selecionado.', show=True)
-                return
-            
-            log.debug("Book ID obtido: %d", book_id)
 
-            # Valida que o livro existe
-            try:
-                if hasattr(db, 'new_api'):
-                    title = db.new_api.field_for('title', book_id)
-                else:
-                    metadata = db.get_metadata(book_id)
-                    title = metadata.title
+        menu = QMenu()
+        menu.addAction('Recomendar Similares', self.show_recommendations)
+        menu.addSeparator()
+        menu.addAction('Configurações...', self._show_config)
+        menu.addAction('Reindexar Biblioteca', self._force_reindex)
+        self.qaction.setMenu(menu)
 
-                log.debug("Livro selecionado: %s", title)
-            except Exception as e:
-                error_dialog(self.gui, 'Erro', 
-                           f'Livro ID {book_id} inválido ou não encontrado.\n{str(e)}',
-                           show=True)
-                return
-            
-            # Inicializa engine se necessário
-            if not self.engine:
-                prefs = self.load_preferences()
-                self.engine = RecommendationEngine(db, prefs)
-            
-            # Verifica se índice precisa ser construído
-            if not self.engine.metadata_index:
-                progress = QProgressDialog(
-                    'Preparando indexação...', None, 0, 0, self.gui
-                )
-                progress.setWindowTitle('Indexando Biblioteca')
-                progress.setWindowModality(WindowModal)
-                progress.show()
+    # ------------------------------------------------------------------
+    # Helpers internos
+    # ------------------------------------------------------------------
 
-                worker = IndexWorker(self.engine)
-                error_holder = [None]
-                loop = QEventLoop()
-
-                def on_progress(current, total):
-                    progress.setMaximum(total)
-                    progress.setValue(current)
-                    progress.setLabelText(f'Indexando: {current} / {total} livros...')
-
-                def on_error(msg):
-                    error_holder[0] = msg
-                    loop.quit()
-
-                worker.progress.connect(on_progress)
-                worker.finished.connect(loop.quit)
-                worker.error.connect(on_error)
-                worker.start()
-                loop.exec() if PYQT6 else loop.exec_()
-                progress.close()
-
-                if error_holder[0]:
-                    error_dialog(self.gui, 'Erro na indexação',
-                                 f"Erro ao construir índice:\n{error_holder[0]}", show=True)
-                    return
-
-                log.info("Índice construído com %d livros", len(self.engine.metadata_index['books']))
-            
-            # Obtém recomendações
-            progress = QProgressDialog('Calculando recomendações...', None, 0, 0, self.gui)
-            progress.setWindowTitle('Recomendando')
-            progress.setWindowModality(WindowModal)
-            progress.show()
-            
-            try:
-                recommendations = self.engine.recommend(book_id, top_n=20)
-                log.debug("%d recomendações encontradas", len(recommendations))
-            except Exception as e:
-                import traceback
-                error_msg = f"Erro ao calcular recomendações:\n{str(e)}\n\nDetalhes:\n{traceback.format_exc()}"
-                log.error(error_msg)
-                error_dialog(self.gui, 'Erro ao recomendar', error_msg, show=True)
-                return
-            finally:
-                progress.close()
-            
-            if not recommendations:
-                # Mostra informações de debug
-                book_info = self.engine.metadata_index['books'].get(book_id)
-                debug_info = ""
-                if book_info:
-                    debug_info = f"\n\nInformações do livro:\n"
-                    debug_info += f"- Tags: {', '.join(book_info['tags']) if book_info['tags'] else 'Nenhuma'}\n"
-                    debug_info += f"- Autores: {', '.join(book_info['authors']) if book_info['authors'] else 'Nenhum'}\n"
-                    debug_info += f"- Idioma: {', '.join(book_info['languages']) if book_info['languages'] else 'Nenhum'}\n"
-                    debug_info += f"- Série: {book_info['series'] or 'Nenhuma'}\n"
-                    debug_info += f"- Editora: {book_info['publisher'] or 'Nenhuma'}\n"
-                
-                info_dialog(self.gui, 'Sem recomendações',
-                           f'Não foram encontrados livros similares. {debug_info}\n\n'
-                           'Dicas:\n'
-                           '- Adicione tags descritivas ao livro\n'
-                           '- Preencha metadados (autor, série, editora)\n'
-                           '- Verifique se há outros livros do mesmo idioma',
-                           show=True)
-                return
-            
-            # Mostra dialog com recomendações
-            dialog = RecommenderDialog(self.gui, book_id, recommendations, self.engine)
-            dialog.exec()
-            
-        except Exception as e:
-            import traceback
-            error_msg = f"Erro inesperado:\n{str(e)}\n\nStack trace:\n{traceback.format_exc()}"
-            log.error(error_msg)
-            error_dialog(self.gui, 'Erro', error_msg, show=True)
-    
     def load_preferences(self):
-        """Carrega preferências do plugin"""
         from calibre.utils.config import JSONConfig
         prefs = JSONConfig('plugins/recommender')
         prefs.defaults['use_tfidf'] = False
         prefs.defaults['min_similarity'] = 0.1
         return prefs
-    
+
+    def _ensure_engine(self, db):
+        """Inicializa o engine na primeira chamada."""
+        if not self.engine:
+            self.engine = RecommendationEngine(db, self.load_preferences())
+
+    def _build_index_with_progress(self):
+        """Constrói (ou reconstrói) o índice mostrando barra de progresso.
+
+        Returns True em caso de sucesso, False se houve erro.
+        """
+        progress = QProgressDialog('Preparando indexação...', None, 0, 0, self.gui)
+        progress.setWindowTitle('Indexando Biblioteca')
+        progress.setWindowModality(WindowModal)
+        progress.show()
+
+        worker = IndexWorker(self.engine)
+        error_holder = [None]
+        loop = QEventLoop()
+
+        def on_progress(current, total):
+            progress.setMaximum(total)
+            progress.setValue(current)
+            progress.setLabelText(f'Indexando: {current} / {total} livros...')
+
+        def on_error(msg):
+            error_holder[0] = msg
+            loop.quit()
+
+        worker.progress.connect(on_progress)
+        worker.finished.connect(loop.quit)
+        worker.error.connect(on_error)
+        worker.start()
+        loop.exec() if PYQT6 else loop.exec_()
+        progress.close()
+
+        if error_holder[0]:
+            error_dialog(self.gui, 'Erro na indexação',
+                         f"Erro ao construir índice:\n{error_holder[0]}", show=True)
+            return False
+
+        log.info("Índice construído com %d livros", len(self.engine.metadata_index['books']))
+        return True
+
+    # ------------------------------------------------------------------
+    # Ações do menu de contexto
+    # ------------------------------------------------------------------
+
+    def _show_config(self):
+        """Abre dialog de configurações do plugin."""
+        from calibre_plugins.recommender.config import ConfigWidget
+
+        d = QDialog(self.gui)
+        d.setWindowTitle('Smart Book Recommender — Configurações')
+        layout = QVBoxLayout()
+        d.setLayout(layout)
+
+        config_widget = ConfigWidget()
+        layout.addWidget(config_widget)
+
+        buttons = QDialogButtonBox(OkCancel)
+        buttons.accepted.connect(lambda: (config_widget.save_settings(), d.accept()))
+        buttons.rejected.connect(d.reject)
+        layout.addWidget(buttons)
+
+        d.exec() if PYQT6 else d.exec_()
+        self.apply_settings()
+
+    def _force_reindex(self):
+        """Reconstrói o índice imediatamente."""
+        db = self.gui.current_db
+        self._ensure_engine(db)
+        self.engine.metadata_index = None
+        self._build_index_with_progress()
+
+    # ------------------------------------------------------------------
+    # Ação principal
+    # ------------------------------------------------------------------
+
+    def show_recommendations(self):
+        """Mostra dialog de recomendações para o livro selecionado."""
+        rows = self.gui.library_view.selectionModel().selectedRows()
+        if not rows:
+            error_dialog(self.gui, 'Nenhum livro selecionado',
+                         'Por favor, selecione um livro para obter recomendações.',
+                         show=True)
+            return
+
+        try:
+            db = self.gui.current_db
+
+            if hasattr(self.gui.library_view, 'current_id'):
+                book_id = self.gui.library_view.current_id
+            else:
+                book_id = self.gui.library_view.model().id(rows[0])
+
+            if book_id is None or book_id < 1:
+                error_dialog(self.gui, 'Erro',
+                             'Não foi possível obter ID do livro selecionado.', show=True)
+                return
+
+            log.debug("Book ID obtido: %d", book_id)
+
+            try:
+                if hasattr(db, 'new_api'):
+                    title = db.new_api.field_for('title', book_id)
+                else:
+                    title = db.get_metadata(book_id).title
+                log.debug("Livro selecionado: %s", title)
+            except Exception as e:
+                error_dialog(self.gui, 'Erro',
+                             f'Livro ID {book_id} inválido ou não encontrado.\n{e}',
+                             show=True)
+                return
+
+            self._ensure_engine(db)
+
+            if not self.engine.metadata_index:
+                if not self._build_index_with_progress():
+                    return
+
+            progress = QProgressDialog('Calculando recomendações...', None, 0, 0, self.gui)
+            progress.setWindowTitle('Recomendando')
+            progress.setWindowModality(WindowModal)
+            progress.show()
+
+            try:
+                recommendations = self.engine.recommend(book_id, top_n=20)
+                log.debug("%d recomendações encontradas", len(recommendations))
+            except Exception as e:
+                import traceback
+                error_msg = (f"Erro ao calcular recomendações:\n{e}\n\n"
+                             f"Detalhes:\n{traceback.format_exc()}")
+                log.error(error_msg)
+                error_dialog(self.gui, 'Erro ao recomendar', error_msg, show=True)
+                return
+            finally:
+                progress.close()
+
+            if not recommendations:
+                book_info = self.engine.metadata_index['books'].get(book_id)
+                details = ''
+                if book_info:
+                    details = (
+                        f"\n\nInformações do livro:"
+                        f"\n- Tags: {', '.join(book_info['tags']) or 'Nenhuma'}"
+                        f"\n- Autores: {', '.join(book_info['authors']) or 'Nenhum'}"
+                        f"\n- Idioma: {', '.join(book_info['languages']) or 'Nenhum'}"
+                        f"\n- Série: {book_info['series'] or 'Nenhuma'}"
+                        f"\n- Editora: {book_info['publisher'] or 'Nenhuma'}"
+                    )
+                info_dialog(self.gui, 'Sem recomendações',
+                            f'Não foram encontrados livros similares.{details}\n\n'
+                            'Dicas:\n'
+                            '- Adicione tags descritivas ao livro\n'
+                            '- Preencha metadados (autor, série, editora)\n'
+                            '- Verifique se há outros livros do mesmo idioma',
+                            show=True)
+                return
+
+            RecommenderDialog(self.gui, book_id, recommendations, self.engine).exec()
+
+        except Exception as e:
+            import traceback
+            error_msg = f"Erro inesperado:\n{e}\n\nStack trace:\n{traceback.format_exc()}"
+            log.error(error_msg)
+            error_dialog(self.gui, 'Erro', error_msg, show=True)
+
     def apply_settings(self):
-        """Aplica configurações alteradas"""
-        # Força reconstrução do índice
+        """Invalida índice ao salvar configurações."""
         if self.engine:
             self.engine.metadata_index = None
 
