@@ -32,7 +32,7 @@
 - [x] **[engine.py:recommend]** `_is_read` consultado individualmente por candidato a cada busca → construído set de IDs lidos uma vez no início de `recommend()`.
 - [x] **[engine.py:get_explanation]** Strings da coluna "Razão" (`"Mesmo autor:"`, `"Série:"`, `"Tags:"`, etc.) não passaram pelo wrap de i18n. Guard `_()` adicionado ao módulo; todas as strings de `get_explanation` e `_get_metadata` envolvidas.
 - [x] **[engine.py:pre_filter]** Editora não era usada como fonte de candidatos no pré-filtro. `publisher_candidates` adicionado à união; livros com zero tags mas mesma editora agora chegam ao scoring.
-- [ ] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub. Conteúdo deve ser em inglês.
+- [x] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub. Conteúdo em inglês; reescrito do zero para refletir estado atual do plugin.
 
 ## P3 — Manutenção
 

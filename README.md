@@ -1,256 +1,175 @@
-# Smart Book Recommender - Plugin para Calibre
+# Smart Book Recommender
 
-Plugin de recomendações inteligentes para o Calibre que sugere livros similares da sua biblioteca baseado em metadados e opcionalmente análise textual.
+A [Calibre](https://calibre-ebook.com/) plugin that recommends similar books from your own library based on metadata analysis — no internet connection required, no external services.
 
-## Características
+## Features
 
-✅ **Rápido e Escalável**: Otimizado para bibliotecas grandes (testado com 22.000+ livros)
-✅ **Algoritmo Híbrido**: Combina análise de metadados com detecção automática de categoria
-✅ **Zero Dependências**: Funciona sem bibliotecas externas (TF-IDF opcional)
-✅ **Cache Inteligente**: Indexação automática para buscas instantâneas
-✅ **Interface Intuitiva**: Integrado nativamente no Calibre
+- **Metadata-driven recommendations** — compares tags, authors, series, publisher, and publication year using a weighted scoring model
+- **Automatic category detection** — adjusts scoring weights for technical vs. fiction books based on tags
+- **Book detail panel** — shows cover, authors, series, tags, rating, and formats for each recommendation without leaving the dialog
+- **Unread filter** — optionally restrict recommendations to books not yet marked as read via a custom boolean column
+- **Optional TF-IDF analysis** — text-based scoring from book descriptions/comments when `scikit-learn` is available
+- **Per-library index cache** — JSON cache keyed by library, invalidated automatically when `metadata.db` changes
+- **Split toolbar button** — main click recommends; dropdown opens Settings and Re-index
+- **PyQt5 / PyQt6 compatible** — works on Calibre 5.x through 8.x on Windows, macOS, and Linux
 
-## Como Funciona
+## Requirements
 
-O plugin analisa:
-- **Tags e categorias** (peso maior para livros técnicos)
-- **Autores** (especialmente importante para ficção)
-- **Séries** (detecta livros relacionados)
-- **Editoras** (padrões de publicação)
-- **Ano de publicação** (proximidade temporal)
-- **Idioma** (filtra automaticamente)
+| Requirement | Notes |
+|---|---|
+| Calibre ≥ 5.0.0 | Python is bundled — no separate install needed |
+| scikit-learn | **Optional.** Enables TF-IDF mode for text-based scoring |
 
-### Detecção Automática
+## Installation
 
-O plugin detecta se o livro é **técnico** ou **ficção** e ajusta os pesos automaticamente:
+### From a release ZIP (recommended)
 
-- **Livros Técnicos** (PDFs, programação, etc.): Prioriza tags e editora
-- **Ficção** (EPUBs, romances, etc.): Prioriza autor e série
+1. Download `recommender-x.y.z.zip` from the [Releases](../../releases) page.
+2. In Calibre: **Preferences → Plugins → Load plugin from file**.
+3. Select the downloaded ZIP and confirm.
+4. Restart Calibre.
 
-## Instalação
+The **Recomendar Similares** button appears in the main toolbar after restart.
 
-### Método 1: Via Interface do Calibre (Recomendado)
-
-1. Baixe o arquivo `recommender.zip` deste repositório
-2. Abra o Calibre
-3. Vá em **Preferências → Plugins → Carregar plugin de arquivo**
-4. Selecione o arquivo `recommender.zip`
-5. Clique em **Sim** para aplicar e reiniciar o Calibre
-
-### Método 2: Manual
-
-1. Clone ou baixe este repositório
-2. Compacte a pasta `calibre_recommender` em um arquivo ZIP
-3. Renomeie para `recommender.zip`
-4. Siga os passos 2-5 do Método 1
-
-## Uso
-
-### Básico
-
-1. Selecione um livro na sua biblioteca
-2. Clique no botão **"Recomendar Similares"** na barra de ferramentas
-3. Uma janela mostrará até 20 livros similares com:
-   - Título e autor
-   - Porcentagem de similaridade
-   - Avaliação (se disponível)
-   - Razão da recomendação
-
-4. Clique duas vezes em qualquer livro para visualizá-lo na biblioteca
-
-### Primeira Execução
-
-Na primeira vez que usar o plugin, ele construirá um índice da sua biblioteca. Para 22.000 livros, isso leva **2-5 minutos**. Esse índice é salvo e reutilizado nas próximas execuções.
-
-### Configurações
-
-Acesse **Preferências → Plugins → Interface Actions → Smart Book Recommender → Configurar**
-
-Opções disponíveis:
-- **Usar análise textual (TF-IDF)**: Melhora qualidade (requer scikit-learn)
-- **Número de recomendações**: 5-50 livros
-- **Similaridade mínima**: Filtro de qualidade (0-100%)
-- **Reconstruir Índice**: Força atualização do cache
-
-## Otimizações para Bibliotecas Grandes
-
-### Performance Esperada (22.000 livros)
-
-| Operação | Tempo |
-|----------|-------|
-| Indexação inicial | 2-5 minutos (uma vez) |
-| Busca de recomendações | 50-200ms |
-| Com TF-IDF ativado | 100-400ms |
-
-### Dicas de Performance
-
-1. **Mantenha metadados organizados**: Tags consistentes = melhores resultados
-2. **Use cache**: Não force reconstrução sem necessidade
-3. **TF-IDF opcional**: Só ative se tiver scikit-learn e quiser melhor qualidade
-
-## Melhorando Resultados
-
-### Tags Bem Organizadas
-
-**❌ Evite:**
-```
-Tags: "lido", "ler depois", "favorito", "meu", "2024"
-```
-
-**✅ Prefira:**
-```
-Tags: "Python", "Machine Learning", "O'Reilly", "Programação"
-Tags: "Fantasia", "Épico", "Trilogia", "Brandon Sanderson"
-```
-
-### Metadados Completos
-
-Preencha sempre que possível:
-- **Autor**: Essencial para ficção
-- **Série**: Detecta livros relacionados automaticamente
-- **Editora**: Importante para livros técnicos
-- **Comentários**: Usado em TF-IDF (se ativado)
-
-### Categorização Automática
-
-O plugin detecta categoria baseado em:
-
-**Técnico se:**
-- Tags contêm: "programming", "python", "database", "algorithm", etc.
-- Formato: PDF
-- Tags em português: "programação", "tecnologia", "computação"
-
-**Ficção caso contrário:**
-- EPUBs sem tags técnicas
-- Tags de gênero: "romance", "fantasia", "thriller"
-
-## Dependências Opcionais
-
-### TF-IDF (Análise Textual)
-
-Para ativar análise textual avançada:
+### Building from source
 
 ```bash
-# No terminal/prompt de comando
-pip install scikit-learn
-
-# Ou no ambiente do Calibre (Windows)
-calibre-debug -c "from calibre.utils.rapydscript import compile_pyj; compile_pyj()"
-pip install --target="C:\Program Files\Calibre2\app\site-packages" scikit-learn
+git clone <repo-url>
+cd "Smart Recommendation"
+python build.py                    # outputs dist/recommender-x.y.z.zip
+python build.py --output /tmp      # custom output directory
 ```
 
-**Linux/Mac:**
-```bash
-calibre-customize --add-plugin recommender.zip
-pip install --user scikit-learn
+`build.py` has no dependencies beyond the Python standard library. It also generates the toolbar icon automatically.
+
+## Usage
+
+1. Select a book in your library.
+2. Click **Recomendar Similares** in the toolbar.
+3. On the first run the plugin builds a metadata index — a few seconds for small libraries, a couple of minutes for very large ones. Subsequent runs load from cache instantly.
+4. The recommendation dialog shows the top N similar books. Select a row to preview book details in the side panel. Double-click or press **Ver Livro** to navigate directly to that book in the library.
+
+> If the library has an active search filter, the plugin clears it automatically so the selected book is always visible.
+
+## Configuration
+
+Open settings via the toolbar dropdown → **Configurações...** or via Calibre's **Preferences → Plugins → Smart Book Recommender → Customize plugin**.
+
+| Setting | Default | Description |
+|---|---|---|
+| Use TF-IDF analysis | Off | Text-based scoring using book descriptions. Requires `scikit-learn`. Slower on first run. |
+| Number of recommendations | 20 | Results to show per search (5–50). |
+| Minimum similarity | 10% | Results below this threshold are hidden (0–100%). |
+| Suggest only unread books | Off | Hides books already marked as read in your library. |
+| Read column | *(empty)* | Name of the custom boolean column that flags a book as read. Omit the `#` prefix — e.g. use `read`, not `#read`. |
+
+Changing **Use TF-IDF** or **Minimum similarity** invalidates the index automatically. Changing only the unread filter or number of results does not require re-indexing.
+
+## How it works
+
+### Step 1 — Pre-filter
+
+To avoid scoring every book in a large library, the engine first collects candidates that share at least one of the following with the selected book (within the same language):
+
+- a tag
+- an author
+- a series
+- a publisher
+
+This reduces tens of thousands of books to a few hundred candidates.
+
+### Step 2 — Weighted scoring
+
+Each candidate receives a score from 0 to 1 using a weighted sum. The weights differ by detected category:
+
+| Signal | Technical | Fiction |
+|---|---|---|
+| Tag similarity (Jaccard) | 50% | 35% |
+| Same author | 20% | 25% |
+| Same series | 15% | 25% |
+| Same publisher | 10% | 10% |
+| Publication year proximity | 5% | 5% |
+
+**Category detection** is tag-based: if any tag matches a set of technical keywords (programming languages, CS topics, data science, etc.) the book is classified as technical; otherwise it is fiction.
+
+### Step 3 — Cache
+
+The metadata index is serialised as JSON and stored at:
+
+```
+<calibre-config-dir>/plugins/recommender_cache/metadata_index_<lib-hash>.json
 ```
 
-## Estrutura do Projeto
+`<lib-hash>` is an 8-character MD5 of the library path, so each library has its own independent cache file. The cache is invalidated automatically when `metadata.db` is newer than the cache.
+
+## Tips for better results
+
+The quality of recommendations depends directly on the quality of your metadata.
+
+**Tags** — use descriptive, consistent tags rather than personal notes:
 
 ```
-calibre_recommender/
-├── __init__.py          # Plugin principal
-├── engine.py            # Motor de recomendações (algoritmos)
-├── ui.py               # Interface gráfica
-├── config.py           # Widget de configuração
-├── plugin-import-name-recommender.txt
-└── README.md
+# Avoid
+Tags: read, to-read, favourite, mine, 2024
+
+# Prefer
+Tags: Python, Machine Learning, O'Reilly, Programming
+Tags: Fantasy, Epic, Trilogy, Brandon Sanderson
 ```
 
-## Algoritmo Detalhado
-
-### Camada 1: Pré-Filtro (22k → ~500 livros)
-```python
-Filtros aplicados:
-1. Mesmo idioma (essencial)
-2. Pelo menos 1 tag EM COMUM
-   OU mesmo autor
-   OU mesma série
-```
-
-### Camada 2: Cálculo de Similaridade
-
-**Para Livros Técnicos:**
-```
-Score = 0.50 × similaridade_tags +
-        0.20 × mesmo_autor +
-        0.15 × mesma_série +
-        0.10 × mesma_editora +
-        0.05 × proximidade_ano
-```
-
-**Para Ficção:**
-```
-Score = 0.35 × similaridade_tags +
-        0.25 × mesmo_autor +
-        0.25 × mesma_série +
-        0.10 × mesma_editora +
-        0.05 × proximidade_ano
-```
-
-### Camada 3: TF-IDF (Opcional)
-Se ativado, refina top 100 candidatos analisando descrições/comentários.
+**Other fields** — fill in author, series, publisher, and comments whenever possible. The author and series signals are especially important for fiction; tags and publisher matter most for technical books.
 
 ## Troubleshooting
 
-### "Nenhuma recomendação encontrada"
+### No recommendations found
 
-**Possíveis causas:**
-- Livro sem tags ou metadados
-- Livro muito único (sem similares na biblioteca)
-- Idioma diferente dos demais
+- The selected book has no tags, no matched author, series, or publisher in your library.
+- The book's language does not match other books.
+- **Fix:** add descriptive tags to the book and make sure other books in your library share at least one metadata field.
 
-**Solução:**
-1. Adicione tags ao livro selecionado
-2. Preencha metadados (autor, série, editora)
-3. Verifique se há outros livros do mesmo gênero/idioma
+### Recommendations look unrelated
 
-### Indexação muito lenta
+- Metadata is sparse or inconsistent.
+- Tags are personal notes rather than descriptive genre/topic labels.
+- **Fix:** review and standardise tags across your library. Consider enabling TF-IDF if `scikit-learn` is available.
 
-**Para 22k livros:**
-- Normal: 2-5 minutos
-- Lento: >10 minutos
+### First indexing is slow
 
-**Se muito lento:**
-1. Verifique se HD/SSD está em uso alto
-2. Feche outros programas pesados
-3. Aguarde conclusão (só acontece uma vez)
+Normal for large libraries — the index is built once and then cached. You can continue using Calibre while indexing runs in the background thread.
 
-### Recomendações de baixa qualidade
+## Project structure
 
-**Melhore seus metadados:**
-1. Revise tags: Sejam descritivas, não genéricas
-2. Complete informações de autor e série
-3. Considere ativar TF-IDF (se tiver scikit-learn)
+```
+Smart Recommendation/
+├── __init__.py          # Plugin entry point (InterfaceActionBase)
+├── ui.py                # Qt UI — toolbar action, dialogs, book detail panel
+├── engine.py            # Recommendation algorithm and index cache
+├── config.py            # Settings widget
+├── build.py             # Packaging script → dist/recommender-x.y.z.zip
+├── images/
+│   └── icon.png         # 32×32 toolbar icon (auto-generated by build.py)
+├── translations/        # Optional compiled .mo files for i18n
+└── plugin-import-name-recommender.txt
+```
 
-## Limitações Conhecidas
+## Contributing
 
-- Não analisa conteúdo dos arquivos (apenas metadados, exceto com TF-IDF)
-- Depende de metadados bem preenchidos
-- Primeira indexação pode demorar em bibliotecas muito grandes
-- TF-IDF requer biblioteca externa (opcional)
+Contributions are welcome. Please open an issue before submitting a large pull request.
 
-## Roadmap Futuro
+### Running the plugin from source during development
 
-- [ ] Suporte a embeddings semânticos (Sentence-BERT)
-- [ ] Análise de capas (similaridade visual)
-- [ ] Histórico de leitura (livros lidos recentemente)
-- [ ] Recomendações por cluster (descubra novos gêneros)
-- [ ] Export de recomendações (CSV, JSON)
+```bash
+calibre-customize -a .   # installs from current directory
+calibre-debug -g         # launches Calibre with debug output
+```
 
-## Contribuindo
+### Adding a translation
 
-Sugestões e PRs são bem-vindos! Áreas de melhoria:
-- Otimizações de performance
-- Novos algoritmos de similaridade
-- Melhorias na UI
-- Testes com diferentes tipos de biblioteca
+1. Extract strings with `xgettext` (or `pygettext`) targeting `ui.py`, `config.py`, and `engine.py`.
+2. Create `translations/<locale>.po` and fill in translations.
+3. Compile: `msgfmt translations/<locale>.po -o translations/<locale>.mo`.
+4. Run `python build.py` — compiled `.mo` files in `translations/` are included in the ZIP automatically.
 
-## Licença
+## License
 
-GPL v3 - Compatível com Calibre
-
-## Créditos
-
-Desenvolvido para a comunidade Calibre
-Algoritmo baseado em pesquisa de sistemas de recomendação
+GPL v3 — see <https://www.gnu.org/licenses/gpl-3.0.html>.
