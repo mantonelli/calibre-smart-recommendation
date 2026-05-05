@@ -7,6 +7,8 @@ Recomenda livros similares baseado em metadados e análise textual opcional
 """
 
 from calibre.customize import InterfaceActionBase
+from calibre.utils.localization import load_translations
+load_translations()
 
 __license__ = 'GPL v3'
 __copyright__ = '2024'
@@ -21,7 +23,7 @@ class RecommenderPlugin(InterfaceActionBase):
     description = 'Recomenda livros similares da sua biblioteca baseado em metadados e conteúdo'
     supported_platforms = ['windows', 'osx', 'linux']
     author = 'Calibre Community'
-    version = (1, 2, 2)
+    version = (1, 2, 3)
     minimum_calibre_version = (5, 0, 0)
     
     actual_plugin = 'calibre_plugins.recommender.ui:RecommenderAction'

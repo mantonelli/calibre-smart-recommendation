@@ -20,12 +20,15 @@ except ImportError:
 
 from calibre.utils.config import JSONConfig
 
+try:
+    _
+except NameError:
+    _ = lambda x: x
+
 
 class ConfigWidget(QWidget):
-    """
-    Widget de configuração do plugin
-    """
-    
+    """Widget de configuração do plugin."""
+
     def __init__(self):
         QWidget.__init__(self)
         self.prefs = JSONConfig('plugins/recommender')
@@ -34,103 +37,99 @@ class ConfigWidget(QWidget):
         self.prefs.defaults['default_top_n'] = 20
         self.prefs.defaults['filter_unread'] = False
         self.prefs.defaults['read_column'] = ''
-        
+
         self._setup_ui()
         self._load_settings()
-    
+
     def _setup_ui(self):
-        """Configura interface"""
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         # Grupo: Algoritmo
-        algo_group = QGroupBox('Configurações do Algoritmo')
+        algo_group = QGroupBox(_('Configurações do Algoritmo'))
         algo_layout = QFormLayout()
         algo_group.setLayout(algo_layout)
-        
-        # Checkbox TF-IDF
+
         self.tfidf_checkbox = QCheckBox()
-        self.tfidf_checkbox.setToolTip(
+        self.tfidf_checkbox.setToolTip(_(
             'Usa análise textual (TF-IDF) para melhorar recomendações.\n'
             'Requer scikit-learn instalado.\n'
             'Pode tornar a primeira busca mais lenta.'
-        )
-        algo_layout.addRow('Usar análise textual (TF-IDF):', self.tfidf_checkbox)
-        
-        # Número de recomendações
+        ))
+        algo_layout.addRow(_('Usar análise textual (TF-IDF):'), self.tfidf_checkbox)
+
         self.top_n_spinbox = QSpinBox()
         self.top_n_spinbox.setMinimum(5)
         self.top_n_spinbox.setMaximum(50)
         self.top_n_spinbox.setSingleStep(5)
-        self.top_n_spinbox.setToolTip('Número de recomendações a exibir')
-        algo_layout.addRow('Número de recomendações:', self.top_n_spinbox)
-        
-        # Similaridade mínima
+        self.top_n_spinbox.setToolTip(_('Número de recomendações a exibir'))
+        algo_layout.addRow(_('Número de recomendações:'), self.top_n_spinbox)
+
         self.min_sim_spinbox = QSpinBox()
         self.min_sim_spinbox.setMinimum(0)
         self.min_sim_spinbox.setMaximum(100)
         self.min_sim_spinbox.setSingleStep(5)
         self.min_sim_spinbox.setSuffix('%')
-        self.min_sim_spinbox.setToolTip('Similaridade mínima para exibir recomendação (0-100%)')
-        algo_layout.addRow('Similaridade mínima:', self.min_sim_spinbox)
-        
+        self.min_sim_spinbox.setToolTip(_('Similaridade mínima para exibir recomendação (0-100%)'))
+        algo_layout.addRow(_('Similaridade mínima:'), self.min_sim_spinbox)
+
         layout.addWidget(algo_group)
 
         # Grupo: Filtro de Leitura
-        filter_group = QGroupBox('Filtro de Leitura')
+        filter_group = QGroupBox(_('Filtro de Leitura'))
         filter_layout = QFormLayout()
         filter_group.setLayout(filter_layout)
 
         self.filter_unread_checkbox = QCheckBox()
-        self.filter_unread_checkbox.setToolTip(
+        self.filter_unread_checkbox.setToolTip(_(
             'Quando ativado, as recomendações incluirão apenas\n'
             'livros ainda não marcados como lidos.'
-        )
+        ))
         self.filter_unread_checkbox.toggled.connect(self._on_filter_toggled)
-        filter_layout.addRow('Sugerir apenas livros não lidos:', self.filter_unread_checkbox)
+        filter_layout.addRow(_('Sugerir apenas livros não lidos:'), self.filter_unread_checkbox)
 
-        self.read_column_label = QLabel('Coluna de leitura:')
+        self.read_column_label = QLabel(_('Coluna de leitura:'))
         self.read_column_input = QLineEdit()
-        self.read_column_input.setPlaceholderText('ex: read, lido, ja_li')
-        self.read_column_input.setToolTip(
+        self.read_column_input.setPlaceholderText(_('ex: read, lido, ja_li'))
+        self.read_column_input.setToolTip(_(
             'Nome da coluna booleana personalizada que indica se o livro foi lido.\n'
             'Use apenas o rótulo da coluna, sem o prefixo "#".\n'
             'Exemplo: se a coluna se chama "#read", informe apenas "read".'
-        )
+        ))
         filter_layout.addRow(self.read_column_label, self.read_column_input)
 
         layout.addWidget(filter_group)
 
         # Grupo: Cache
-        cache_group = QGroupBox('Gerenciamento de Cache')
+        cache_group = QGroupBox(_('Gerenciamento de Cache'))
         cache_layout = QVBoxLayout()
         cache_group.setLayout(cache_layout)
-        
-        cache_info = QLabel(
+
+        cache_info = QLabel(_(
             'O plugin mantém um índice da sua biblioteca para buscas rápidas.\n'
             'O índice é invalidado automaticamente quando a biblioteca é modificada.\n'
             'Use o botão abaixo caso queira forçar uma reindexação completa na\n'
             'próxima vez que abrir as recomendações.'
-        )
+        ))
         cache_info.setWordWrap(True)
         cache_layout.addWidget(cache_info)
 
-        rebuild_button = QPushButton('Limpar Cache do Índice')
-        rebuild_button.setToolTip(
+        rebuild_button = QPushButton(_('Limpar Cache do Índice'))
+        rebuild_button.setToolTip(_(
             'Remove o cache do índice. O índice será reconstruído automaticamente\n'
             'na próxima pesquisa de recomendações (pode levar alguns minutos).'
-        )
+        ))
         rebuild_button.clicked.connect(self._clear_index_cache)
         cache_layout.addWidget(rebuild_button)
-        
+
         layout.addWidget(cache_group)
-        
-        # Informações
-        info_group = QGroupBox('Informações')
+
+        # Grupo: Informações
+        info_group = QGroupBox(_('Informações'))
         info_layout = QVBoxLayout()
         info_group.setLayout(info_layout)
-        
-        info_text = QLabel(
+
+        info_text = QLabel(_(
             '<b>Como funciona:</b><br/>'
             'O plugin analisa tags, autores, séries, editoras e anos de publicação '
             'para encontrar livros similares em sua biblioteca.<br/><br/>'
@@ -138,21 +137,19 @@ class ConfigWidget(QWidget):
             '• Mantenha tags organizadas e consistentes<br/>'
             '• Preencha metadados (autor, série, editora)<br/>'
             '• Use tags descritivas (gênero, tópicos, etc.)'
-        )
+        ))
         info_text.setWordWrap(True)
         info_layout.addWidget(info_text)
-        
+
         layout.addWidget(info_group)
-        
+
         layout.addStretch()
-    
+
     def _on_filter_toggled(self, checked):
-        """Habilita/desabilita campo de coluna conforme checkbox."""
         self.read_column_label.setEnabled(checked)
         self.read_column_input.setEnabled(checked)
 
     def _load_settings(self):
-        """Carrega configurações salvas"""
         self.tfidf_checkbox.setChecked(self.prefs.get('use_tfidf', False))
         self.top_n_spinbox.setValue(self.prefs.get('default_top_n', 20))
         self.min_sim_spinbox.setValue(int(self.prefs.get('min_similarity', 0.1) * 100))
@@ -162,22 +159,20 @@ class ConfigWidget(QWidget):
         self._on_filter_toggled(filter_unread)
 
     def save_settings(self):
-        """Salva configurações"""
         self.prefs['use_tfidf'] = self.tfidf_checkbox.isChecked()
         self.prefs['default_top_n'] = self.top_n_spinbox.value()
         self.prefs['min_similarity'] = self.min_sim_spinbox.value() / 100.0
         self.prefs['filter_unread'] = self.filter_unread_checkbox.isChecked()
         self.prefs['read_column'] = self.read_column_input.text().strip()
-    
+
     def _clear_index_cache(self):
-        """Remove o cache do índice para forçar reindexação na próxima pesquisa."""
         reply = QMessageBox.question(
             self,
-            'Limpar Cache do Índice',
-            'O cache do índice será removido.\n\n'
-            'O índice será reconstruído automaticamente na próxima pesquisa de '
-            'recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n\n'
-            'Continuar?',
+            _('Limpar Cache do Índice'),
+            _('O cache do índice será removido.\n\n'
+              'O índice será reconstruído automaticamente na próxima pesquisa de '
+              'recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n\n'
+              'Continuar?'),
             StandardButton.Yes | StandardButton.No,
             StandardButton.No
         )
@@ -195,9 +190,9 @@ class ConfigWidget(QWidget):
                 removed = True
 
             msg = (
-                'Cache removido com sucesso.\n\n'
-                'O índice será reconstruído automaticamente na próxima pesquisa.'
+                _('Cache removido com sucesso.\n\n'
+                  'O índice será reconstruído automaticamente na próxima pesquisa.')
                 if removed else
-                'Nenhum cache encontrado. O índice já será gerado na próxima pesquisa.'
+                _('Nenhum cache encontrado. O índice já será gerado na próxima pesquisa.')
             )
-            QMessageBox.information(self, 'Cache Limpo', msg)
+            QMessageBox.information(self, _('Cache Limpo'), msg)

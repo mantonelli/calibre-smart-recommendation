@@ -131,13 +131,28 @@ def build(output_dir):
             if fname.lower().endswith(('.png', '.svg', '.ico', '.jpg')):
                 image_files.append(os.path.join('images', fname))
 
+    # Coleta traduções compiladas (translations/*.mo)
+    translations_dir = os.path.join(SCRIPT_DIR, 'translations')
+    translation_files = []
+    if os.path.isdir(translations_dir):
+        for fname in os.listdir(translations_dir):
+            if fname.lower().endswith('.mo'):
+                translation_files.append(os.path.join('translations', fname))
+
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         for filename in PLUGIN_FILES:
             zf.write(os.path.join(SCRIPT_DIR, filename), arcname=filename)
         for filename in image_files:
             zf.write(os.path.join(SCRIPT_DIR, filename), arcname=filename)
+        for filename in translation_files:
+            zf.write(os.path.join(SCRIPT_DIR, filename), arcname=filename)
 
-    extras = f' + {len(image_files)} imagem(ns)' if image_files else ''
+    parts = []
+    if image_files:
+        parts.append(f'{len(image_files)} imagem(ns)')
+    if translation_files:
+        parts.append(f'{len(translation_files)} tradução(ões)')
+    extras = (' + ' + ', '.join(parts)) if parts else ''
     print(f"Plugin v{version_str}{extras} → {zip_path}")
     return zip_path
 
