@@ -26,4 +26,4 @@
 
 ## P3 — Manutenção
 
-- [ ] **[engine.py:37,267+]** `print()` espalhados pelo engine → substituir por `logging` (evita spam no console Calibre em prod)
+- [x] **[engine.py:37,267+]** `print()` espalhados pelo engine → substituídos por `logging` com níveis corretos (DEBUG/INFO/WARNING/ERROR) em engine.py e ui.py

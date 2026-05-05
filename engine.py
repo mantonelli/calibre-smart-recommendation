@@ -6,10 +6,13 @@ Motor de Recomendações - Core do algoritmo
 Implementa similaridade por metadados com suporte opcional para TF-IDF
 """
 
+import logging
 import os
 import json
 from collections import defaultdict
 from datetime import datetime
+
+log = logging.getLogger(__name__)
 
 
 class RecommendationEngine:
@@ -32,7 +35,7 @@ class RecommendationEngine:
         
         # Detecta API do Calibre
         self.use_new_api = hasattr(db, 'new_api')
-        print(f"Calibre API: {'new_api' if self.use_new_api else 'legacy'}")
+        log.debug("Calibre API: %s", 'new_api' if self.use_new_api else 'legacy')
         
         # Tenta importar scikit-learn se disponível
         try:
@@ -157,18 +160,18 @@ class RecommendationEngine:
                     metadata_db = os.path.join(library_path, 'metadata.db')
                     if os.path.exists(metadata_db):
                         if os.path.getmtime(cache_file) < os.path.getmtime(metadata_db):
-                            print("Cache desatualizado: metadata.db modificado após cache")
+                            log.warning("Cache desatualizado: metadata.db modificado após cache")
                             raise ValueError("stale cache")
 
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     self.metadata_index = self._deserialize_index(json.load(f))
-                    print(f"Cache válido encontrado: {len(self.metadata_index['books'])} livros")
+                    log.info("Cache carregado: %d livros", len(self.metadata_index['books']))
                     return
             except Exception as e:
-                print(f"Erro ao carregar cache: {e}")
+                log.warning("Erro ao carregar cache: %s", e)
         
         # Constrói índice do zero
-        print("Construindo índice de metadados...")
+        log.info("Construindo índice de metadados...")
         self.metadata_index = {
             'books': {},
             'tags': defaultdict(set),
@@ -182,19 +185,18 @@ class RecommendationEngine:
         # Obtém todos os IDs de livros
         all_ids = self._get_all_book_ids()
         total = len(all_ids)
-        print(f"Total de livros na biblioteca: {total}")
-        
+        log.info("Total de livros na biblioteca: %d", total)
+
         for idx, book_id in enumerate(all_ids):
             if idx % 1000 == 0:
-                print(f"Indexando: {idx}/{total}")
+                log.debug("Indexando: %d/%d", idx, total)
             if progress_callback and idx % 100 == 0:
                 progress_callback(idx, total)
 
             try:
-                # Obtém metadados de forma compatível
                 metadata = self._get_metadata(book_id)
             except Exception as e:
-                print(f"Erro ao indexar livro {book_id}: {e}")
+                log.warning("Erro ao indexar livro %d: %s", book_id, e)
                 continue
             
             # Extrai informações relevantes
@@ -243,7 +245,7 @@ class RecommendationEngine:
         if progress_callback:
             progress_callback(total, total)
 
-        print(f"Índice construído: {total} livros indexados")
+        log.info("Índice construído: %d livros indexados", total)
     
     def detect_category(self, book_info):
         """
@@ -313,42 +315,31 @@ class RecommendationEngine:
         # Filtro 1: Mesmo idioma (essencial)
         primary_lang = book_info['languages'][0] if book_info['languages'] else 'por'
         same_language = self.metadata_index['languages'].get(primary_lang.lower(), set())
-        
-        print(f"    Pré-filtro: Idioma '{primary_lang}' → {len(same_language)} livros")
-        
+
+        log.debug("Pré-filtro: idioma '%s' → %d livros", primary_lang, len(same_language))
+
         # Filtro 2: Pelo menos 1 tag em comum OU mesmo autor OU mesma série
         tags_candidates = set()
         for tag in book_info['tags']:
-            tag_books = self.metadata_index['tags'].get(tag.lower(), set())
-            tags_candidates.update(tag_books)
-        
-        print(f"    Pré-filtro: Tags → {len(tags_candidates)} livros")
-        
+            tags_candidates.update(self.metadata_index['tags'].get(tag.lower(), set()))
+
         author_candidates = set()
         for author in book_info['authors']:
-            author_books = self.metadata_index['authors'].get(author.lower(), set())
-            author_candidates.update(author_books)
-        
-        print(f"    Pré-filtro: Autores → {len(author_candidates)} livros")
-        
+            author_candidates.update(self.metadata_index['authors'].get(author.lower(), set()))
+
         series_candidates = set()
         if book_info['series']:
-            series_books = self.metadata_index['series'].get(book_info['series'].lower(), set())
-            series_candidates.update(series_books)
-            print(f"    Pré-filtro: Série → {len(series_candidates)} livros")
-        
-        # União de tags, autores e séries
-        candidates = tags_candidates | author_candidates | series_candidates
-        print(f"    Pré-filtro: Total antes de idioma → {len(candidates)} livros")
-        
-        # Interseção: mesmo idioma E (tags OU autor OU série)
-        candidates = candidates & same_language
-        print(f"    Pré-filtro: Após filtro de idioma → {len(candidates)} livros")
-        
+            series_candidates = self.metadata_index['series'].get(book_info['series'].lower(), set())
+
+        # União de tags, autores e séries; interseção com idioma
+        candidates = (tags_candidates | author_candidates | series_candidates) & same_language
+
         # Remove o próprio livro
         candidates.discard(book_info['id'])
-        
-        print(f"    Pré-filtro: Final (sem o próprio livro) → {len(candidates)} livros")
+
+        log.debug("Pré-filtro: %d candidatos (tags=%d, autores=%d, série=%d, idioma=%d)",
+                  len(candidates), len(tags_candidates), len(author_candidates),
+                  len(series_candidates), len(same_language))
         
         return candidates
     
@@ -425,61 +416,42 @@ class RecommendationEngine:
         """
         # Garante que índice está construído
         if not self.metadata_index:
-            print("AVISO: Índice não existe, construindo...")
+            log.warning("Índice não existe, construindo...")
             self.build_index()
-        
+
         # Obtém informações do livro selecionado
         book_info = self.metadata_index['books'].get(book_id)
         if not book_info:
-            print(f"ERRO: Livro {book_id} não encontrado no índice!")
-            print(f"IDs disponíveis: {list(self.metadata_index['books'].keys())[:10]}...")
+            log.error("Livro %d não encontrado no índice", book_id)
             return []
-        
-        print(f"DEBUG recommend(): Processando livro {book_id}")
-        print(f"  Título: {book_info['title']}")
-        print(f"  Tags: {book_info['tags']}")
-        print(f"  Idiomas: {book_info['languages']}")
-        
+
+        log.debug("recommend(): livro %d — '%s' tags=%s idiomas=%s",
+                  book_id, book_info['title'], book_info['tags'], book_info['languages'])
+
         # Detecta categoria
         category = self.detect_category(book_info)
-        print(f"  Categoria detectada: {category}")
-        
+        log.debug("Categoria detectada: %s", category)
+
         # Pré-filtra candidatos
         candidates = self.pre_filter(book_info)
-        print(f"  Candidatos após pré-filtro: {len(candidates)}")
-        
+
         if not candidates:
-            print("  PROBLEMA: Nenhum candidato após pré-filtro!")
-            print(f"  Idioma do livro: {book_info['languages']}")
-            print(f"  Total de livros no índice: {len(self.metadata_index['books'])}")
-            
-            # Debug: mostra quantos livros por idioma
             lang_counts = {}
-            for bid, binfo in self.metadata_index['books'].items():
+            for binfo in self.metadata_index['books'].values():
                 for lang in binfo['languages']:
                     lang_counts[lang] = lang_counts.get(lang, 0) + 1
-            print(f"  Distribuição de idiomas: {lang_counts}")
-            
-            # Debug: mostra se há tags em comum
-            tags_lower = set(t.lower() for t in book_info['tags'])
-            print(f"  Tags do livro (lowercase): {tags_lower}")
-            matching_tags = set()
-            for tag in tags_lower:
-                if tag in self.metadata_index['tags']:
-                    matching_tags.add(tag)
-                    print(f"    Tag '{tag}' encontrada em {len(self.metadata_index['tags'][tag])} livros")
-            
-            if not matching_tags:
-                print("  PROBLEMA: Nenhuma tag do livro encontrada em outros livros!")
-            
+            log.warning(
+                "Nenhum candidato para livro %d. Idiomas=%s distribuição=%s tags=%s",
+                book_id, book_info['languages'], lang_counts,
+                [t for t in book_info['tags'] if t.lower() in self.metadata_index['tags']],
+            )
             return []
-        
+
         # Calcula scores
         scores = []
         for candidate_id in candidates:
             candidate_info = self.metadata_index['books'][candidate_id]
             similarity = self.calculate_similarity(book_info, candidate_info, category)
-            
             if similarity > 0:
                 scores.append((
                     candidate_id,
@@ -488,17 +460,12 @@ class RecommendationEngine:
                     candidate_info['authors'],
                     candidate_info['rating']
                 ))
-        
-        print(f"  Scores calculados: {len(scores)}")
-        
-        # Ordena por score decrescente
+
         scores.sort(key=lambda x: x[1], reverse=True)
-        
-        # Debug: mostra top 3
-        for i, (cid, score, title, _, _) in enumerate(scores[:3]):
-            print(f"    {i+1}. {title} - {score*100:.1f}%")
-        
-        # Retorna top N
+        log.info("recommend(): %d resultados para '%s'", len(scores), book_info['title'])
+        for i, (_, score, title, _, _) in enumerate(scores[:3]):
+            log.debug("  top%d: %s (%.1f%%)", i + 1, title, score * 100)
+
         return scores[:top_n]
     
     def get_explanation(self, book_id, recommended_id):

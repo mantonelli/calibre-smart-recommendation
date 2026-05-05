@@ -5,6 +5,8 @@
 Interface do Usuário - Dialog de Recomendações
 """
 
+import logging
+
 try:
     # Calibre 8.x usa PyQt6
     from PyQt6.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
@@ -33,6 +35,8 @@ from calibre.gui2 import error_dialog, info_dialog
 from calibre.gui2.actions import InterfaceAction
 
 from calibre_plugins.recommender.engine import RecommendationEngine
+
+log = logging.getLogger(__name__)
 
 
 class IndexWorker(QThread):
@@ -92,7 +96,7 @@ class RecommenderDialog(QDialog):
                 title = selected_metadata.title
                 authors_text = ', '.join(selected_metadata.authors) if selected_metadata.authors else 'Autor desconhecido'
         except Exception as e:
-            print(f"Erro ao obter metadados do livro {self.book_id}: {e}")
+            log.warning("Erro ao obter metadados do livro %d: %s", self.book_id, e)
             title = f'Livro ID {self.book_id}'
             authors_text = 'Informação não disponível'
         
@@ -250,8 +254,8 @@ class RecommenderAction(InterfaceAction):
                 error_dialog(self.gui, 'Erro', 'Não foi possível obter ID do livro selecionado.', show=True)
                 return
             
-            print(f"DEBUG: Book ID obtido: {book_id}")
-            
+            log.debug("Book ID obtido: %d", book_id)
+
             # Valida que o livro existe
             try:
                 if hasattr(db, 'new_api'):
@@ -259,8 +263,8 @@ class RecommenderAction(InterfaceAction):
                 else:
                     metadata = db.get_metadata(book_id)
                     title = metadata.title
-                
-                print(f"DEBUG: Livro selecionado: {title}")
+
+                log.debug("Livro selecionado: %s", title)
             except Exception as e:
                 error_dialog(self.gui, 'Erro', 
                            f'Livro ID {book_id} inválido ou não encontrado.\n{str(e)}',
@@ -309,7 +313,7 @@ class RecommenderAction(InterfaceAction):
                                  f"Erro ao construir índice:\n{error_holder[0]}", show=True)
                     return
 
-                print(f"DEBUG: Índice construído com {len(self.engine.metadata_index['books'])} livros")
+                log.info("Índice construído com %d livros", len(self.engine.metadata_index['books']))
             
             # Obtém recomendações
             progress = QProgressDialog('Calculando recomendações...', None, 0, 0, self.gui)
@@ -319,11 +323,11 @@ class RecommenderAction(InterfaceAction):
             
             try:
                 recommendations = self.engine.recommend(book_id, top_n=20)
-                print(f"DEBUG: {len(recommendations)} recomendações encontradas")
+                log.debug("%d recomendações encontradas", len(recommendations))
             except Exception as e:
                 import traceback
                 error_msg = f"Erro ao calcular recomendações:\n{str(e)}\n\nDetalhes:\n{traceback.format_exc()}"
-                print(f"ERROR: {error_msg}")
+                log.error(error_msg)
                 error_dialog(self.gui, 'Erro ao recomendar', error_msg, show=True)
                 return
             finally:
@@ -357,7 +361,7 @@ class RecommenderAction(InterfaceAction):
         except Exception as e:
             import traceback
             error_msg = f"Erro inesperado:\n{str(e)}\n\nStack trace:\n{traceback.format_exc()}"
-            print(f"ERROR FATAL: {error_msg}")
+            log.error(error_msg)
             error_dialog(self.gui, 'Erro', error_msg, show=True)
     
     def load_preferences(self):
