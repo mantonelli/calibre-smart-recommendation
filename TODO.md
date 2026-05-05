@@ -19,7 +19,7 @@
 - [x] **[ui.py:94-106]** Colunas da tabela de recomendações truncadas e não redimensionáveis — `Stretch`/`ResizeToContents` substituídos por `Interactive` em todas + `setStretchLastSection(True)` na coluna Razão. Larguras iniciais: Título 220px, Autor 180px, Similaridade 100px.
 
 - [ ] **[ui.py:150-163]** `_populate_table` cria engine temporário por livro se `gui._recommender_engine` ausente → garantir que engine sempre propagado
-- [ ] **[config.py:136-152]** Botão "Reconstruir Índice" só apaga cache, não reconstrói imediatamente → UX enganosa; reconstrói na hora ou avisa claramente
+- [x] **[config.py:136-152]** Botão "Reconstruir Índice" só apaga cache, não reconstrói imediatamente → renomeado para "Limpar Cache do Índice"; mensagens e tooltip explicam que reindexação ocorre na próxima pesquisa.
 - [ ] **[ui.py:195]** `icon.png` não existe no projeto → `get_icons` sempre usa fallback; adicionar ícone ou simplificar
 - [ ] Botão deve funcionar com menu de contexto, dano possibilidade de acessar a janela de configurações e reindexar a biblioteca
 - [ ] Tela de configuração deve prever a possibilidade do usuário optar pelas sugestões serem feitas apenas entre livros não lidos. Se o usuário optar por desconsiderar os lidos, na tela de configurações deverá informar o nome da coluna (booleana) que armazena essa informação.

@@ -78,15 +78,20 @@ class ConfigWidget(QWidget):
         cache_group.setLayout(cache_layout)
         
         cache_info = QLabel(
-            'O plugin mantém um índice da sua biblioteca para busca rápida.\n'
-            'Este índice é atualizado automaticamente quando a biblioteca muda.'
+            'O plugin mantém um índice da sua biblioteca para buscas rápidas.\n'
+            'O índice é invalidado automaticamente quando a biblioteca é modificada.\n'
+            'Use o botão abaixo caso queira forçar uma reindexação completa na\n'
+            'próxima vez que abrir as recomendações.'
         )
         cache_info.setWordWrap(True)
         cache_layout.addWidget(cache_info)
-        
-        rebuild_button = QPushButton('Reconstruir Índice Agora')
-        rebuild_button.setToolTip('Força reconstrução do índice de metadados')
-        rebuild_button.clicked.connect(self._rebuild_index)
+
+        rebuild_button = QPushButton('Limpar Cache do Índice')
+        rebuild_button.setToolTip(
+            'Remove o cache do índice. O índice será reconstruído automaticamente\n'
+            'na próxima pesquisa de recomendações (pode levar alguns minutos).'
+        )
+        rebuild_button.clicked.connect(self._clear_index_cache)
         cache_layout.addWidget(rebuild_button)
         
         layout.addWidget(cache_group)
@@ -124,29 +129,35 @@ class ConfigWidget(QWidget):
         self.prefs['default_top_n'] = self.top_n_spinbox.value()
         self.prefs['min_similarity'] = self.min_sim_spinbox.value() / 100.0
     
-    def _rebuild_index(self):
-        """Força reconstrução do índice"""
+    def _clear_index_cache(self):
+        """Remove o cache do índice para forçar reindexação na próxima pesquisa."""
         reply = QMessageBox.question(
-            self, 
-            'Reconstruir Índice',
-            'Isso irá reconstruir o índice completo da biblioteca.\n'
-            'Pode levar alguns minutos. Continuar?',
+            self,
+            'Limpar Cache do Índice',
+            'O cache do índice será removido.\n\n'
+            'O índice será reconstruído automaticamente na próxima pesquisa de '
+            'recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n\n'
+            'Continuar?',
             StandardButton.Yes | StandardButton.No,
             StandardButton.No
         )
-        
+
         if reply == StandardButton.Yes:
-            # Deleta cache existente
             import os
             from calibre.utils.config import config_dir
-            cache_dir = os.path.join(config_dir, 'plugins', 'recommender_cache')
-            cache_file = os.path.join(cache_dir, 'metadata_index.json')
-            
+            cache_file = os.path.join(
+                config_dir, 'plugins', 'recommender_cache', 'metadata_index.json'
+            )
+
+            removed = False
             if os.path.exists(cache_file):
                 os.remove(cache_file)
-            
-            QMessageBox.information(
-                self,
-                'Índice Removido',
-                'O índice será reconstruído na próxima vez que você usar o plugin.'
+                removed = True
+
+            msg = (
+                'Cache removido com sucesso.\n\n'
+                'O índice será reconstruído automaticamente na próxima pesquisa.'
+                if removed else
+                'Nenhum cache encontrado. O índice já será gerado na próxima pesquisa.'
             )
+            QMessageBox.information(self, 'Cache Limpo', msg)
