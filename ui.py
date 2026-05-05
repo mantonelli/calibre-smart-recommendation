@@ -12,7 +12,8 @@ try:
     from PyQt6.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
-                          QDialogButtonBox)
+                          QDialogButtonBox, QSplitter, QScrollArea, QFrame,
+                          QPixmap, QGridLayout, QWidget, QSizePolicy)
     from PyQt6.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = True
     SelectRows = QAbstractItemView.SelectionBehavior.SelectRows
@@ -21,12 +22,20 @@ try:
     WindowModal = Qt.WindowModality.WindowModal
     PopupMode = QToolButton.ToolButtonPopupMode.MenuButtonPopup
     OkCancel = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+    AlignRight  = Qt.AlignmentFlag.AlignRight
+    AlignTop    = Qt.AlignmentFlag.AlignTop
+    AlignCenter = Qt.AlignmentFlag.AlignCenter
+    AlignHCenter = Qt.AlignmentFlag.AlignHCenter
+    KeepAspectRatio   = Qt.AspectRatioMode.KeepAspectRatio
+    SmoothTransform   = Qt.TransformationMode.SmoothTransformation
+    Horizontal        = Qt.Orientation.Horizontal
 except (ImportError, AttributeError):
     # Fallback para PyQt5 (versões antigas do Calibre)
     from PyQt5.Qt import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget,
                           QTableWidgetItem, QLabel, QProgressDialog, QHeaderView,
                           QAbstractItemView, Qt, QIcon, QMenu, QToolButton,
-                          QDialogButtonBox)
+                          QDialogButtonBox, QSplitter, QScrollArea, QFrame,
+                          QPixmap, QGridLayout, QWidget, QSizePolicy)
     from PyQt5.QtCore import QThread, pyqtSignal, QEventLoop
     PYQT6 = False
     SelectRows = QAbstractItemView.SelectRows
@@ -35,6 +44,13 @@ except (ImportError, AttributeError):
     WindowModal = Qt.WindowModal
     PopupMode = QToolButton.MenuButtonPopup
     OkCancel = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+    AlignRight  = Qt.AlignRight
+    AlignTop    = Qt.AlignTop
+    AlignCenter = Qt.AlignCenter
+    AlignHCenter = Qt.AlignHCenter
+    KeepAspectRatio = Qt.KeepAspectRatio
+    SmoothTransform = Qt.SmoothTransformation
+    Horizontal      = Qt.Horizontal
 
 from calibre.gui2 import error_dialog, info_dialog
 from calibre.gui2.actions import InterfaceAction
@@ -64,6 +80,137 @@ class IndexWorker(QThread):
             self.error.emit(f"{e}\n\n{traceback.format_exc()}")
 
 
+class BookDetailPanel(QWidget):
+    """Painel lateral com capa e metadados do livro selecionado na tabela."""
+
+    COVER_W = 180
+    COVER_H = 260
+
+    def __init__(self, gui, engine):
+        QWidget.__init__(self)
+        self.gui = gui
+        self.engine = engine
+        self._cover_cache = {}
+        self._setup_ui()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout()
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(8)
+        self.setLayout(layout)
+        self.setMinimumWidth(220)
+
+        # Capa
+        self.cover_label = QLabel()
+        self.cover_label.setAlignment(AlignHCenter | AlignTop)
+        self.cover_label.setMinimumHeight(self.COVER_H)
+        self.cover_label.setMaximumHeight(self.COVER_H)
+        self.cover_label.setSizePolicy(QSizePolicy.Policy.Expanding if PYQT6
+                                       else QSizePolicy.Expanding,
+                                       QSizePolicy.Policy.Fixed if PYQT6
+                                       else QSizePolicy.Fixed)
+        layout.addWidget(self.cover_label)
+
+        # Scroll com campos de metadados
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame if PYQT6 else QFrame.NoFrame)
+        self._fields_widget = QWidget()
+        self._fields_layout = QGridLayout()
+        self._fields_layout.setColumnStretch(1, 1)
+        self._fields_layout.setHorizontalSpacing(8)
+        self._fields_layout.setVerticalSpacing(4)
+        self._fields_widget.setLayout(self._fields_layout)
+        scroll.setWidget(self._fields_widget)
+        layout.addWidget(scroll, 1)
+
+        self._clear()
+
+    def _clear(self):
+        self.cover_label.setText('<i>Selecione<br/>um livro</i>')
+        self.cover_label.setAlignment(AlignCenter)
+        while self._fields_layout.count():
+            item = self._fields_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+    def _add_row(self, row, label_text, value_text):
+        lbl = QLabel(f'<span style="color:#888;">{label_text}</span>')
+        lbl.setAlignment(AlignRight | AlignTop)
+        val = QLabel(value_text)
+        val.setWordWrap(True)
+        val.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse if PYQT6
+            else Qt.TextSelectableByMouse
+        )
+        self._fields_layout.addWidget(lbl, row, 0)
+        self._fields_layout.addWidget(val, row, 1)
+
+    def show_book(self, book_id):
+        self._clear()
+        book_info = self.engine.metadata_index['books'].get(book_id) if self.engine.metadata_index else None
+        if not book_info:
+            return
+
+        self._load_cover(book_id)
+
+        row = 0
+        if book_info['authors']:
+            self._add_row(row, 'Autores', ', '.join(book_info['authors']))
+            row += 1
+
+        if book_info['series']:
+            series = book_info['series']
+            if book_info.get('series_index'):
+                series += f' #{int(book_info["series_index"])}'
+            self._add_row(row, 'Série', series)
+            row += 1
+
+        if book_info['tags']:
+            self._add_row(row, 'Tags', ', '.join(book_info['tags']))
+            row += 1
+
+        if book_info['rating']:
+            filled = int(book_info['rating'] / 2)
+            stars = '★' * filled + '☆' * (5 - filled)
+            self._add_row(row, 'Avaliação', stars)
+            row += 1
+
+        if book_info['formats']:
+            self._add_row(row, 'Formatos', ', '.join(book_info['formats']))
+            row += 1
+
+        if book_info['publisher']:
+            self._add_row(row, 'Editora', book_info['publisher'])
+            row += 1
+
+        if book_info['pubdate'] and hasattr(book_info['pubdate'], 'year'):
+            self._add_row(row, 'Ano', str(book_info['pubdate'].year))
+
+    def _load_cover(self, book_id):
+        if book_id in self._cover_cache:
+            self.cover_label.setPixmap(self._cover_cache[book_id])
+            return
+
+        db = self.gui.current_db
+        try:
+            cover_data = (db.new_api.cover(book_id) if hasattr(db, 'new_api')
+                          else db.cover(book_id, index_is_id=True))
+            if cover_data:
+                pixmap = QPixmap()
+                pixmap.loadFromData(cover_data)
+                scaled = pixmap.scaled(self.COVER_W, self.COVER_H,
+                                       KeepAspectRatio, SmoothTransform)
+                self._cover_cache[book_id] = scaled
+                self.cover_label.setAlignment(AlignHCenter | AlignTop)
+                self.cover_label.setPixmap(scaled)
+                return
+        except Exception:
+            pass
+        self.cover_label.setText('<i>(sem capa)</i>')
+        self.cover_label.setAlignment(AlignCenter)
+
+
 class RecommenderDialog(QDialog):
     """
     Dialog que exibe recomendações de livros
@@ -75,89 +222,86 @@ class RecommenderDialog(QDialog):
         self.book_id = book_id
         self.recommendations = recommendations
         self.engine = engine
-        
+
         self.setWindowTitle('Recomendações de Livros Similares')
-        self.setMinimumWidth(800)
-        self.setMinimumHeight(500)
-        
+        self.setMinimumWidth(1050)
+        self.setMinimumHeight(520)
+
         self._setup_ui()
         self._populate_table()
-    
+
     def _setup_ui(self):
-        """Configura interface do diálogo"""
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         # Cabeçalho
         db = self.gui.current_db
-        
-        # Obtém metadados de forma compatível
         try:
             if hasattr(db, 'new_api'):
                 title = db.new_api.field_for('title', self.book_id) or 'Sem título'
                 authors = db.new_api.field_for('authors', self.book_id) or []
                 authors_text = ', '.join(authors) if authors else 'Autor desconhecido'
             else:
-                selected_metadata = db.get_metadata(self.book_id, index_is_id=True)
-                title = selected_metadata.title
-                authors_text = ', '.join(selected_metadata.authors) if selected_metadata.authors else 'Autor desconhecido'
+                meta = db.get_metadata(self.book_id, index_is_id=True)
+                title = meta.title
+                authors_text = ', '.join(meta.authors) if meta.authors else 'Autor desconhecido'
         except Exception as e:
             log.warning("Erro ao obter metadados do livro %d: %s", self.book_id, e)
-            title = f'Livro ID {self.book_id}'
-            authors_text = 'Informação não disponível'
-        
-        header_text = f'<h2>Recomendações baseadas em:</h2><p><b>{title}</b><br/>por {authors_text}</p>'
-        header_label = QLabel(header_text)
-        layout.addWidget(header_label)
-        
-        # Tabela de recomendações
+            title, authors_text = f'Livro ID {self.book_id}', 'Informação não disponível'
+
+        layout.addWidget(QLabel(
+            f'<h2>Recomendações baseadas em:</h2>'
+            f'<p><b>{title}</b><br/>por {authors_text}</p>'
+        ))
+
+        # Splitter: tabela | painel de detalhes
+        splitter = QSplitter(Horizontal)
+
+        # — Tabela —
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(['Título', 'Autor(es)', 'Similaridade', 'Razão'])
-        
-        # Configurações da tabela
         self.table.setSelectionBehavior(SelectRows)
         self.table.setSelectionMode(SingleSelection)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
-        
-        # Ajusta largura das colunas: todas interativas (redimensionáveis pelo usuário);
-        # última coluna (Razão) estica para preencher espaço restante.
+
         header = self.table.horizontalHeader()
         header.setMinimumSectionSize(80)
         header.setStretchLastSection(True)
-
         try:
             interactive = QHeaderView.ResizeMode.Interactive
         except AttributeError:
             interactive = QHeaderView.Interactive
-
         for col in range(3):
             header.setSectionResizeMode(col, interactive)
+        self.table.setColumnWidth(0, 200)
+        self.table.setColumnWidth(1, 160)
+        self.table.setColumnWidth(2, 95)
 
-        self.table.setColumnWidth(0, 220)   # Título
-        self.table.setColumnWidth(1, 180)   # Autor(es)
-        self.table.setColumnWidth(2, 100)   # Similaridade
-        # col 3 (Razão) preenchida via setStretchLastSection
-        
-        # Double-click abre livro
         self.table.doubleClicked.connect(self._on_book_double_clicked)
-        
-        layout.addWidget(self.table)
-        
+        self.table.selectionModel().currentRowChanged.connect(self._on_row_changed)
+        splitter.addWidget(self.table)
+
+        # — Painel de detalhes —
+        self.detail_panel = BookDetailPanel(self.gui, self.engine)
+        splitter.addWidget(self.detail_panel)
+
+        # Proporção inicial: ~70% tabela, ~30% painel
+        splitter.setStretchFactor(0, 7)
+        splitter.setStretchFactor(1, 3)
+
+        layout.addWidget(splitter, 1)
+
         # Botões
         button_layout = QHBoxLayout()
-        
         self.view_button = QPushButton('Ver Livro')
         self.view_button.clicked.connect(self._on_view_book)
         button_layout.addWidget(self.view_button)
-        
         self.close_button = QPushButton('Fechar')
         self.close_button.clicked.connect(self.accept)
         button_layout.addWidget(self.close_button)
-        
         button_layout.addStretch()
-        
         layout.addLayout(button_layout)
     
     def _populate_table(self):
@@ -178,7 +322,18 @@ class RecommenderDialog(QDialog):
 
             explanation = self.engine.get_explanation(self.book_id, book_id)
             self.table.setItem(row, 3, QTableWidgetItem(explanation))
+
+        if self.recommendations:
+            self.table.selectRow(0)
     
+    def _on_row_changed(self, current, previous):
+        """Atualiza painel de detalhes ao mudar seleção na tabela."""
+        if not current.isValid():
+            return
+        item = self.table.item(current.row(), 0)
+        if item:
+            self.detail_panel.show_book(item.data(UserRole))
+
     def _on_book_double_clicked(self):
         """Evento de double-click em livro"""
         self._on_view_book()
