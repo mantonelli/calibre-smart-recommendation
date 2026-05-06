@@ -489,10 +489,18 @@ class RecommendationEngine:
         if authors1 & authors2:
             score += weights['author']
         
-        # Mesma série
+        # Mesma série (com proximidade de índice)
         if book1_info['series'] and book2_info['series']:
             if book1_info['series'].lower() == book2_info['series'].lower():
-                score += weights['series']
+                idx1 = book1_info.get('series_index') or 0.0
+                idx2 = book2_info.get('series_index') or 0.0
+                if idx1 and idx2:
+                    diff = abs(idx1 - idx2)
+                    # Adjacente=100%, cai linearmente, mínimo 50% em diff≥10
+                    proximity = max(0.5, 1.0 - diff / 20.0)
+                else:
+                    proximity = 1.0
+                score += weights['series'] * proximity
         
         # Mesma editora
         if book1_info['publisher'] and book2_info['publisher']:
@@ -635,7 +643,14 @@ class RecommendationEngine:
         # 2. Mesma série
         if book1['series'] and book2['series']:
             if book1['series'].lower() == book2['series'].lower():
-                reasons.append(_('Série: {series}').format(series=book2['series']))
+                idx2 = book2.get('series_index')
+                if idx2:
+                    series_label = _('Série: {series} #{index}').format(
+                        series=book2['series'], index=int(idx2) if idx2 == int(idx2) else idx2
+                    )
+                else:
+                    series_label = _('Série: {series}').format(series=book2['series'])
+                reasons.append(series_label)
 
         # 3. Tags em comum (máx. 3)
         tags1 = set(t.lower() for t in book1['tags'])
