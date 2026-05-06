@@ -5,11 +5,13 @@ A [Calibre](https://calibre-ebook.com/) plugin that recommends similar books fro
 ## Features
 
 - **Metadata-driven recommendations** — compares tags, authors, series, publisher, and publication year using a weighted scoring model
+- **Series-aware scoring** — books in the same series always appear as candidates; adjacent volumes rank higher than distant ones via series-index proximity
 - **Automatic category detection** — adjusts scoring weights for technical vs. fiction books based on tags
 - **Book detail panel** — shows cover, authors, series, tags, rating, and formats for each recommendation without leaving the dialog
-- **Unread filter** — optionally restrict recommendations to books not yet marked as read via a custom boolean column
+- **Unread filter** — optionally restrict recommendations to books not yet marked as read; books from the same series are always shown regardless of read status
+- **Metadata quality report** — scans the library for books with incomplete metadata and opens them directly in Calibre's metadata editor
 - **Per-library index cache** — JSON cache keyed by library, invalidated automatically when `metadata.db` changes
-- **Split toolbar button** — main click recommends; dropdown opens Settings and Re-index
+- **Split toolbar button** — main click recommends; dropdown opens Quality Report, Settings, and Re-index
 - **PyQt5 / PyQt6 compatible** — works on Calibre 5.x through 8.x on Windows, macOS, and Linux
 
 ## Requirements
@@ -57,10 +59,11 @@ Open settings via the toolbar dropdown → **Configurações...** or via Calibre
 |---|---|---|
 | Number of recommendations | 20 | Results to show per search (5–50). |
 | Minimum similarity | 10% | Results below this threshold are hidden (0–100%). |
-| Suggest only unread books | Off | Hides books already marked as read in your library. |
+| Quality alert threshold | 50% | Books with a metadata score below this value appear in the quality report (0–100%). |
+| Suggest only unread books | Off | Hides books already marked as read. Books from the same series as the selected book are always shown regardless of read status. |
 | Read column | *(empty)* | Name of the custom boolean column that flags a book as read. Omit the `#` prefix — e.g. use `read`, not `#read`. |
 
-Changing **Minimum similarity** invalidates the index automatically. Changing only the unread filter or number of results does not require re-indexing.
+Changing **Minimum similarity** invalidates the index automatically. Changing only the unread filter, quality threshold, or number of results does not require re-indexing.
 
 ## How it works
 
@@ -83,11 +86,13 @@ Each candidate receives a score from 0 to 1 using a weighted sum. The weights di
 |---|---|---|
 | Tag similarity (Jaccard) | 50% | 35% |
 | Same author | 20% | 25% |
-| Same series | 15% | 25% |
+| Same series (with volume proximity) | 15% | 25% |
 | Same publisher | 10% | 10% |
 | Publication year proximity | 5% | 5% |
 
 **Category detection** is tag-based: if any tag matches a set of technical keywords (programming languages, CS topics, data science, etc.) the book is classified as technical; otherwise it is fiction.
+
+**Series-index proximity** — when two books share the same series, the series weight is scaled by how close their volume numbers are. Adjacent volumes (diff = 1) score 100%; the factor decreases linearly, flooring at 50% for a gap of 10 or more volumes. Books with no volume number receive the full series weight. Same-series books always pass the unread filter, even when the selected book is marked as read.
 
 ### Step 3 — Cache
 
@@ -98,6 +103,31 @@ The metadata index is serialised as JSON and stored at:
 ```
 
 `<lib-hash>` is an 8-character MD5 of the library path, so each library has its own independent cache file. The cache is invalidated automatically when `metadata.db` is newer than the cache.
+
+## Metadata Quality Report
+
+Open the report via the toolbar dropdown → **Qualidade dos Metadados...**
+
+The report scans every book in the index and surfaces those whose metadata score falls below the configured threshold (default 50%). Each row shows the title, authors, score, and a plain-language list of issues. Rows are sorted from worst to best.
+
+### Scoring breakdown
+
+| Signal | Max penalty |
+|---|---|
+| No tags | −40 pts |
+| Only personal tags (e.g. "read", "to-read") | −20 pts |
+| Fewer than 2 descriptive tags | −10 pts |
+| No author | −20 pts |
+| Title implies a series but series field is empty | −15 pts |
+| No publisher | −10 pts |
+| No synopsis (comments field) | −10 pts |
+| No publication date | −5 pts |
+
+A book with full metadata scores **100**. Missing tags alone drops the score to **60** (below the default threshold of 50%, a book must be missing tags *and* at least one other field).
+
+### Editing directly from the report
+
+Double-click any row or select it and click **Editar Metadados** to open Calibre's native metadata editor for that book. The quality report stays open so you can work through the list without reopening it.
 
 ## Tips for better results
 
@@ -129,6 +159,10 @@ Tags: Fantasy, Epic, Trilogy, Brandon Sanderson
 - Metadata is sparse or inconsistent.
 - Tags are personal notes rather than descriptive genre/topic labels.
 - **Fix:** review and standardise tags across your library.
+
+### Books from the same series do not appear when "suggest only unread" is on
+
+Same-series books always bypass the unread filter — they are the most relevant candidates for a series reader. If they still don't appear, check that the series field is filled in for both books.
 
 ### First indexing is slow
 

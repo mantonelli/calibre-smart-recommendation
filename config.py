@@ -155,7 +155,7 @@ class ConfigWidget(QWidget):
     def _load_settings(self):
         self.top_n_spinbox.setValue(self.prefs.get('default_top_n', 20))
         self.min_sim_spinbox.setValue(int(self.prefs.get('min_similarity', 0.1) * 100))
-        self.quality_score_spinbox.setValue(self.prefs.get('quality_min_score', 70))
+        self.quality_score_spinbox.setValue(self.prefs.get('quality_min_score', 50))
         filter_unread = self.prefs.get('filter_unread', False)
         self.filter_unread_checkbox.setChecked(filter_unread)
         self.read_column_input.setText(self.prefs.get('read_column', ''))

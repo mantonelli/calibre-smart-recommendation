@@ -3,7 +3,7 @@
 
 """
 Motor de Recomendações - Core do algoritmo
-Implementa similaridade por metadados com suporte opcional para TF-IDF
+Implementa similaridade por metadados em duas camadas: pré-filtro e scoring ponderado.
 """
 
 import logging
@@ -405,8 +405,6 @@ class RecommendationEngine:
         Returns:
             set: IDs dos livros candidatos
         """
-        candidates = set()
-        
         # Filtro 1: Mesmo idioma (essencial)
         primary_lang = book_info['languages'][0] if book_info['languages'] else 'por'
         same_language = self.metadata_index['languages'].get(primary_lang.lower(), set())
