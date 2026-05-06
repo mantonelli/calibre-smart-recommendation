@@ -25,7 +25,7 @@ class RecommenderPlugin(InterfaceActionBase):
     name = 'Smart Book Recommender'
     description = 'Recomenda livros similares da sua biblioteca baseado em metadados e conteúdo'
     supported_platforms = ['windows', 'osx', 'linux']
-    author = 'Calibre Community'
+    author = 'Matheus Antonelli'
     version = (1, 4, 0)
     minimum_calibre_version = (5, 0, 0)
     
