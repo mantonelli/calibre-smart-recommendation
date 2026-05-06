@@ -33,6 +33,8 @@
 - [x] **[engine.py:get_explanation]** Strings da coluna "Razão" (`"Mesmo autor:"`, `"Série:"`, `"Tags:"`, etc.) não passaram pelo wrap de i18n. Guard `_()` adicionado ao módulo; todas as strings de `get_explanation` e `_get_metadata` envolvidas.
 - [x] **[engine.py:pre_filter]** Editora não era usada como fonte de candidatos no pré-filtro. `publisher_candidates` adicionado à união; livros com zero tags mas mesma editora agora chegam ao scoring.
 - [x] Criar `README.md` com instruções de instalação, funcionalidades, configuração e contribuição para publicação no GitHub. Conteúdo em inglês; reescrito do zero para refletir estado atual do plugin.
+- [x] Considerar a série e número do volume na série como critérios para similaridade
+- [x] Livros com vários autores aparentemente só consideram o primeiro para buscar similares
 
 ## P3 — Manutenção
 

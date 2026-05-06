@@ -26,7 +26,7 @@ class RecommenderPlugin(InterfaceActionBase):
     description = 'Recomenda livros similares da sua biblioteca baseado em metadados e conteúdo'
     supported_platforms = ['windows', 'osx', 'linux']
     author = 'Calibre Community'
-    version = (1, 3, 2)
+    version = (1, 4, 0)
     minimum_calibre_version = (5, 0, 0)
     
     actual_plugin = 'calibre_plugins.recommender.ui:RecommenderAction'

@@ -635,10 +635,12 @@ class RecommendationEngine:
         authors2 = set(a.lower() for a in book2['authors'])
         common_authors = authors1 & authors2
         if common_authors:
-            author_name = next(
-                (a for a in book2['authors'] if a.lower() in common_authors), None
-            )
-            reasons.append(_('Mesmo autor: {author}').format(author=author_name))
+            matching = [a for a in book2['authors'] if a.lower() in common_authors]
+            if len(matching) == 1:
+                reasons.append(_('Mesmo autor: {author}').format(author=matching[0]))
+            else:
+                reasons.append(_('Mesmos autores: {authors}').format(
+                    authors=', '.join(matching)))
 
         # 2. Mesma série
         if book1['series'] and book2['series']:
