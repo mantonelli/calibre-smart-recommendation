@@ -1,0 +1,523 @@
+# English translation for Smart Book Recommender
+# Copyright (C) 2024
+# This file is distributed under the same license as the plugin.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Smart Book Recommender 1.4.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-06 00:45-0300\n"
+"PO-Revision-Date: 2026-05-06 00:00+0000\n"
+"Last-Translator: Smart Book Recommender contributors\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ui.py:135
+msgid "<i>Selecione<br/>um livro</i>"
+msgstr "<i>Select<br/>a book</i>"
+
+#: ui.py:164
+msgid "Autores"
+msgstr "Authors"
+
+#: ui.py:171
+msgid "Série"
+msgstr "Series"
+
+#: ui.py:175
+msgid "Tags"
+msgstr "Tags"
+
+#: ui.py:181
+msgid "Avaliação"
+msgstr "Rating"
+
+#: ui.py:185
+msgid "Formatos"
+msgstr "Formats"
+
+#: ui.py:189
+msgid "Editora"
+msgstr "Publisher"
+
+#: ui.py:193
+msgid "Ano"
+msgstr "Year"
+
+#: ui.py:215
+msgid "<i>(sem capa)</i>"
+msgstr "<i>(no cover)</i>"
+
+#: ui.py:229
+msgid "Recomendações de Livros Similares"
+msgstr "Similar Book Recommendations"
+
+#: ui.py:243 engine.py:74 engine.py:89
+msgid "Sem título"
+msgstr "Untitled"
+
+#: ui.py:245 ui.py:249
+msgid "Autor desconhecido"
+msgstr "Unknown author"
+
+#: ui.py:253
+msgid "Informação não disponível"
+msgstr "Information unavailable"
+
+#: ui.py:256
+#, python-brace-format
+msgid ""
+"<h2>Recomendações baseadas em:</h2><p><b>{title}</b><br/>por {authors}</p>"
+msgstr ""
+"<h2>Recommendations based on:</h2><p><b>{title}</b><br/>by {authors}</p>"
+
+#: ui.py:266 ui.py:390
+msgid "Título"
+msgstr "Title"
+
+#: ui.py:266 ui.py:390
+msgid "Autor(es)"
+msgstr "Author(s)"
+
+#: ui.py:266
+msgid "Similaridade"
+msgstr "Similarity"
+
+#: ui.py:266
+msgid "Razão"
+msgstr "Reason"
+
+#: ui.py:299
+msgid "Ver Livro"
+msgstr "View Book"
+
+#: ui.py:302 ui.py:421
+msgid "Fechar"
+msgstr "Close"
+
+#: ui.py:316 ui.py:436
+msgid "Desconhecido"
+msgstr "Unknown"
+
+#: ui.py:369 ui.py:614
+msgid "Qualidade dos Metadados"
+msgstr "Metadata Quality"
+
+#: ui.py:381
+#, python-brace-format
+msgid ""
+"<b>{count} livro(s)</b> com score abaixo de {threshold}% — ordenados do mais "
+"incompleto para o mais completo."
+msgstr ""
+"<b>{count} book(s)</b> with a score below {threshold}% — sorted from most "
+"to least incomplete."
+
+#: ui.py:390
+msgid "Score"
+msgstr "Score"
+
+#: ui.py:390
+msgid "Problemas"
+msgstr "Issues"
+
+#: ui.py:417
+msgid "Editar Metadados"
+msgstr "Edit Metadata"
+
+#: ui.py:480 ui.py:492
+msgid "Recomendar Similares"
+msgstr "Recommend Similar"
+
+#: ui.py:481
+msgid "Encontra livros similares ao selecionado"
+msgstr "Find books similar to the selected one"
+
+#: ui.py:494
+msgid "Qualidade dos Metadados..."
+msgstr "Metadata Quality..."
+
+#: ui.py:496
+msgid "Configurações..."
+msgstr "Settings..."
+
+#: ui.py:497
+msgid "Reindexar Biblioteca"
+msgstr "Re-index Library"
+
+#: ui.py:537
+msgid "Preparando indexação..."
+msgstr "Preparing indexing..."
+
+#: ui.py:538
+msgid "Indexando Biblioteca"
+msgstr "Indexing Library"
+
+#: ui.py:550
+#, python-brace-format
+msgid "Indexando: {current} / {total} livros..."
+msgstr "Indexing: {current} / {total} books..."
+
+#: ui.py:566
+msgid "Erro na indexação"
+msgstr "Indexing error"
+
+#: ui.py:567
+#, python-brace-format
+msgid ""
+"Erro ao construir índice:\n"
+"{error}"
+msgstr ""
+"Error building index:\n"
+"{error}"
+
+#: ui.py:580
+msgid "Smart Book Recommender — Configurações"
+msgstr "Smart Book Recommender — Settings"
+
+#: ui.py:613
+msgid "Analisando metadados..."
+msgstr "Analysing metadata..."
+
+#: ui.py:625
+msgid "Metadados em boa forma"
+msgstr "Metadata looks good"
+
+#: ui.py:626
+#, python-brace-format
+msgid "Nenhum livro encontrado com score abaixo de {threshold}%."
+msgstr "No books found with a score below {threshold}%."
+
+#: ui.py:646
+msgid "Nenhum livro selecionado"
+msgstr "No book selected"
+
+#: ui.py:647
+msgid "Por favor, selecione um livro para obter recomendações."
+msgstr "Please select a book to get recommendations."
+
+#: ui.py:660 ui.py:674 ui.py:741
+msgid "Erro"
+msgstr "Error"
+
+#: ui.py:661
+msgid "Não foi possível obter ID do livro selecionado."
+msgstr "Could not get the ID of the selected book."
+
+#: ui.py:675
+#, python-brace-format
+msgid ""
+"Livro ID {book_id} inválido ou não encontrado.\n"
+"{error}"
+msgstr ""
+"Book ID {book_id} is invalid or not found.\n"
+"{error}"
+
+#: ui.py:686
+msgid "Calculando recomendações..."
+msgstr "Calculating recommendations..."
+
+#: ui.py:687
+msgid "Recomendando"
+msgstr "Recommending"
+
+#: ui.py:697
+#, python-brace-format
+msgid ""
+"Erro ao calcular recomendações:\n"
+"{error}\n"
+"\n"
+"Detalhes:\n"
+"{details}"
+msgstr ""
+"Error calculating recommendations:\n"
+"{error}\n"
+"\n"
+"Details:\n"
+"{details}"
+
+#: ui.py:701
+msgid "Erro ao recomendar"
+msgstr "Recommendation error"
+
+#: ui.py:711
+#, python-brace-format
+msgid ""
+"\n"
+"\n"
+"Informações do livro:\n"
+"- Tags: {tags}\n"
+"- Autores: {authors}\n"
+"- Idioma: {languages}\n"
+"- Série: {series}\n"
+"- Editora: {publisher}"
+msgstr ""
+"\n"
+"\n"
+"Book information:\n"
+"- Tags: {tags}\n"
+"- Authors: {authors}\n"
+"- Language: {languages}\n"
+"- Series: {series}\n"
+"- Publisher: {publisher}"
+
+#: ui.py:718 ui.py:721 ui.py:722
+msgid "Nenhuma"
+msgstr "None"
+
+#: ui.py:719 ui.py:720
+msgid "Nenhum"
+msgstr "None"
+
+#: ui.py:724
+msgid "Sem recomendações"
+msgstr "No recommendations"
+
+#: ui.py:725
+msgid "Não foram encontrados livros similares."
+msgstr "No similar books found."
+
+#: ui.py:726
+msgid ""
+"Dicas:\n"
+"- Adicione tags descritivas ao livro\n"
+"- Preencha metadados (autor, série, editora)\n"
+"- Verifique se há outros livros do mesmo idioma"
+msgstr ""
+"Tips:\n"
+"- Add descriptive tags to the book\n"
+"- Fill in metadata (author, series, publisher)\n"
+"- Check that other books share the same language"
+
+#: ui.py:737
+#, python-brace-format
+msgid ""
+"Erro inesperado:\n"
+"{error}\n"
+"\n"
+"Stack trace:\n"
+"{details}"
+msgstr ""
+"Unexpected error:\n"
+"{error}\n"
+"\n"
+"Stack trace:\n"
+"{details}"
+
+#: config.py:49
+msgid "Configurações do Algoritmo"
+msgstr "Algorithm Settings"
+
+#: config.py:57
+msgid "Número de recomendações a exibir"
+msgstr "Number of recommendations to display"
+
+#: config.py:58
+msgid "Número de recomendações:"
+msgstr "Number of recommendations:"
+
+#: config.py:65
+msgid "Similaridade mínima para exibir recomendação (0-100%)"
+msgstr "Minimum similarity to display a recommendation (0-100%)"
+
+#: config.py:66
+msgid "Similaridade mínima:"
+msgstr "Minimum similarity:"
+
+#: config.py:74
+msgid ""
+"Livros com score de qualidade abaixo deste valor aparecem no\n"
+"relatório de metadados incompletos (0–100%)."
+msgstr ""
+"Books with a quality score below this value appear in\n"
+"the incomplete metadata report (0–100%)."
+
+#: config.py:77
+msgid "Alerta de qualidade abaixo de:"
+msgstr "Quality alert below:"
+
+#: config.py:82
+msgid "Filtro de Leitura"
+msgstr "Read Filter"
+
+#: config.py:88
+msgid ""
+"Quando ativado, as recomendações incluirão apenas\n"
+"livros ainda não marcados como lidos."
+msgstr ""
+"When enabled, recommendations will only include\n"
+"books not yet marked as read."
+
+#: config.py:92
+msgid "Sugerir apenas livros não lidos:"
+msgstr "Suggest only unread books:"
+
+#: config.py:94
+msgid "Coluna de leitura:"
+msgstr "Read column:"
+
+#: config.py:96
+msgid "ex: read, lido, ja_li"
+msgstr "e.g. read, finished, done"
+
+#: config.py:98
+msgid ""
+"Nome da coluna booleana personalizada que indica se o livro foi lido.\n"
+"Use apenas o rótulo da coluna, sem o prefixo \"#\".\n"
+"Exemplo: se a coluna se chama \"#read\", informe apenas \"read\"."
+msgstr ""
+"Name of the custom boolean column that indicates whether a book has been read.\n"
+"Use only the column label without the \"#\" prefix.\n"
+"Example: if the column is called \"#read\", enter \"read\"."
+
+#: config.py:107
+msgid "Gerenciamento de Cache"
+msgstr "Cache Management"
+
+#: config.py:112
+msgid ""
+"O plugin mantém um índice da sua biblioteca para buscas rápidas.\n"
+"O índice é invalidado automaticamente quando a biblioteca é modificada.\n"
+"Use o botão abaixo caso queira forçar uma reindexação completa na\n"
+"próxima vez que abrir as recomendações."
+msgstr ""
+"The plugin maintains an index of your library for fast searches.\n"
+"The index is invalidated automatically when the library is modified.\n"
+"Use the button below to force a full re-index the\n"
+"next time you open recommendations."
+
+#: config.py:120 config.py:174
+msgid "Limpar Cache do Índice"
+msgstr "Clear Index Cache"
+
+#: config.py:122
+msgid ""
+"Remove o cache do índice. O índice será reconstruído automaticamente\n"
+"na próxima pesquisa de recomendações (pode levar alguns minutos)."
+msgstr ""
+"Removes the index cache. The index will be rebuilt automatically\n"
+"on the next recommendation search (may take a few minutes)."
+
+#: config.py:131
+msgid "Informações"
+msgstr "Information"
+
+#: config.py:136
+msgid ""
+"<b>Como funciona:</b><br/>O plugin analisa tags, autores, séries, editoras e "
+"anos de publicação para encontrar livros similares em sua biblioteca.<br/"
+"><br/><b>Dicas para melhores resultados:</b><br/>• Mantenha tags organizadas "
+"e consistentes<br/>• Preencha metadados (autor, série, editora)<br/>• Use "
+"tags descritivas (gênero, tópicos, etc.)"
+msgstr ""
+"<b>How it works:</b><br/>The plugin analyses tags, authors, series, publishers, "
+"and publication years to find similar books in your library.<br/>"
+"<br/><b>Tips for better results:</b><br/>• Keep tags organised and consistent<br/>"
+"• Fill in metadata (author, series, publisher)<br/>• Use descriptive tags "
+"(genre, topics, etc.)"
+
+#: config.py:175
+msgid ""
+"O cache do índice será removido.\n"
+"\n"
+"O índice será reconstruído automaticamente na próxima pesquisa de "
+"recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n"
+"\n"
+"Continuar?"
+msgstr ""
+"The index cache will be removed.\n"
+"\n"
+"The index will be rebuilt automatically on the next recommendation search. "
+"For large libraries this may take a few minutes.\n"
+"\n"
+"Continue?"
+
+#: config.py:208
+msgid ""
+"Cache removido com sucesso.\n"
+"\n"
+"O índice será reconstruído automaticamente na próxima pesquisa."
+msgstr ""
+"Cache cleared successfully.\n"
+"\n"
+"The index will be rebuilt automatically on the next search."
+
+#: config.py:211
+msgid "Nenhum cache encontrado. O índice já será gerado na próxima pesquisa."
+msgstr "No cache found. The index will be generated on the next search."
+
+#: config.py:213
+msgid "Cache Limpo"
+msgstr "Cache Cleared"
+
+#: engine.py:281
+msgid "Sem tags"
+msgstr "No tags"
+
+#: engine.py:286
+msgid "Apenas tags pessoais"
+msgstr "Only personal tags"
+
+#: engine.py:289
+msgid "Poucas tags descritivas (< 2)"
+msgstr "Too few descriptive tags (< 2)"
+
+#: engine.py:294
+msgid "Sem autor"
+msgstr "No author"
+
+#: engine.py:300
+msgid "Série ausente (título sugere sequência)"
+msgstr "Series missing (title suggests a sequence)"
+
+#: engine.py:305
+msgid "Sem editora"
+msgstr "No publisher"
+
+#: engine.py:310
+msgid "Sem sinopse"
+msgstr "No synopsis"
+
+#: engine.py:315
+msgid "Sem data de publicação"
+msgstr "No publication date"
+
+#: engine.py:632
+msgid "Informações não disponíveis"
+msgstr "Information unavailable"
+
+#: engine.py:643
+#, python-brace-format
+msgid "Mesmo autor: {author}"
+msgstr "Same author: {author}"
+
+#: engine.py:645
+#, python-brace-format
+msgid "Mesmos autores: {authors}"
+msgstr "Same authors: {authors}"
+
+#: engine.py:653
+#, python-brace-format
+msgid "Série: {series} #{index}"
+msgstr "Series: {series} #{index}"
+
+#: engine.py:657
+#, python-brace-format
+msgid "Série: {series}"
+msgstr "Series: {series}"
+
+#: engine.py:667
+#, python-brace-format
+msgid "Tags: {tags}"
+msgstr "Tags: {tags}"
+
+#: engine.py:672
+#, python-brace-format
+msgid "Editora: {publisher}"
+msgstr "Publisher: {publisher}"
+
+#: engine.py:675
+msgid "Semelhança de metadados"
+msgstr "Metadata similarity"
