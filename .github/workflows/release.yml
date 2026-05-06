@@ -14,17 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: Build plugin
-        run: python build.py --output dist
+        run: python3 build.py --output dist
 
       - name: Extract version
         id: version
         run: |
-          python - <<'EOF'
+          python3 - <<'EOF'
           import ast, os, sys
 
           with open('__init__.py', encoding='utf-8') as f:
