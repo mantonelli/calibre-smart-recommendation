@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build plugin
+        run: python build.py --output dist
+
+      - name: Extract version
+        id: version
+        run: |
+          python - <<'EOF'
+          import ast, os, sys
+
+          with open('__init__.py', encoding='utf-8') as f:
+              tree = ast.parse(f.read())
+
+          for node in ast.walk(tree):
+              if isinstance(node, ast.ClassDef):
+                  for item in node.body:
+                      if (
+                          isinstance(item, ast.Assign)
+                          and any(isinstance(t, ast.Name) and t.id == 'version'
+                                  for t in item.targets)
+                          and isinstance(item.value, ast.Tuple)
+                      ):
+                          ver = '.'.join(
+                              str(e.n if hasattr(e, 'n') else e.value)
+                              for e in item.value.elts
+                          )
+                          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+                              out.write(f'version={ver}\n')
+                          print(f'version: {ver}')
+                          sys.exit(0)
+
+          print('ERROR: version tuple not found in __init__.py', file=sys.stderr)
+          sys.exit(1)
+          EOF
+
+      - name: Create release and upload asset
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          ZIP="dist/recommender-${VERSION}.zip"
+
+          echo "Creating release ${TAG}..."
+          response=$(curl -sf -X POST \
+            -H "Authorization: token ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases" \
+            -d "{\"tag_name\":\"${TAG}\",\"name\":\"${TAG}\"}")
+
+          upload_url=$(echo "${response}" | \
+            python3 -c "import sys, json; print(json.load(sys.stdin)['upload_url'])" | \
+            sed 's/{.*//')
+
+          echo "Uploading ${ZIP}..."
+          curl -sf -X POST \
+            -H "Authorization: token ${TOKEN}" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@${ZIP}" \
+            "${upload_url}?name=recommender-${VERSION}.zip"
+
+          echo "Done: ${TAG}"
