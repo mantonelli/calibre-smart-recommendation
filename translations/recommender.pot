@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-06 00:45-0300\n"
+"POT-Creation-Date: 2026-05-06 01:14-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ui.py:135
-msgid "<i>Selecione<br/>um livro</i>"
+msgid "<i>Select<br/>a book</i>"
 msgstr ""
 
 #: ui.py:164
-msgid "Autores"
+msgid "Authors"
 msgstr ""
 
 #: ui.py:171
-msgid "Série"
+msgid "Series"
 msgstr ""
 
 #: ui.py:175
@@ -34,84 +34,84 @@ msgid "Tags"
 msgstr ""
 
 #: ui.py:181
-msgid "Avaliação"
+msgid "Rating"
 msgstr ""
 
 #: ui.py:185
-msgid "Formatos"
+msgid "Formats"
 msgstr ""
 
 #: ui.py:189
-msgid "Editora"
+msgid "Publisher"
 msgstr ""
 
 #: ui.py:193
-msgid "Ano"
+msgid "Year"
 msgstr ""
 
 #: ui.py:215
-msgid "<i>(sem capa)</i>"
+msgid "<i>(no cover)</i>"
 msgstr ""
 
 #: ui.py:229
-msgid "Recomendações de Livros Similares"
+msgid "Similar Book Recommendations"
 msgstr ""
 
 #: ui.py:243 engine.py:74 engine.py:89
-msgid "Sem título"
+msgid "Untitled"
 msgstr ""
 
 #: ui.py:245 ui.py:249
-msgid "Autor desconhecido"
+msgid "Unknown author"
 msgstr ""
 
-#: ui.py:253
-msgid "Informação não disponível"
+#: ui.py:253 engine.py:632
+msgid "Information unavailable"
 msgstr ""
 
 #: ui.py:256
 #, python-brace-format
 msgid ""
-"<h2>Recomendações baseadas em:</h2><p><b>{title}</b><br/>por {authors}</p>"
+"<h2>Recommendations based on:</h2><p><b>{title}</b><br/>by {authors}</p>"
 msgstr ""
 
 #: ui.py:266 ui.py:390
-msgid "Título"
+msgid "Title"
 msgstr ""
 
 #: ui.py:266 ui.py:390
-msgid "Autor(es)"
+msgid "Author(s)"
 msgstr ""
 
 #: ui.py:266
-msgid "Similaridade"
+msgid "Similarity"
 msgstr ""
 
 #: ui.py:266
-msgid "Razão"
+msgid "Reason"
 msgstr ""
 
 #: ui.py:299
-msgid "Ver Livro"
+msgid "View Book"
 msgstr ""
 
 #: ui.py:302 ui.py:421
-msgid "Fechar"
+msgid "Close"
 msgstr ""
 
 #: ui.py:316 ui.py:436
-msgid "Desconhecido"
+msgid "Unknown"
 msgstr ""
 
 #: ui.py:369 ui.py:614
-msgid "Qualidade dos Metadados"
+msgid "Metadata Quality"
 msgstr ""
 
 #: ui.py:381
 #, python-brace-format
 msgid ""
-"<b>{count} livro(s)</b> com score abaixo de {threshold}% — ordenados do mais "
-"incompleto para o mais completo."
+"<b>{count} book(s)</b> with a score below {threshold}% — sorted from most to "
+"least incomplete."
 msgstr ""
 
 #: ui.py:390
@@ -119,117 +119,117 @@ msgid "Score"
 msgstr ""
 
 #: ui.py:390
-msgid "Problemas"
+msgid "Issues"
 msgstr ""
 
 #: ui.py:417
-msgid "Editar Metadados"
+msgid "Edit Metadata"
 msgstr ""
 
 #: ui.py:480 ui.py:492
-msgid "Recomendar Similares"
+msgid "Recommend Similar"
 msgstr ""
 
 #: ui.py:481
-msgid "Encontra livros similares ao selecionado"
+msgid "Find books similar to the selected one"
 msgstr ""
 
 #: ui.py:494
-msgid "Qualidade dos Metadados..."
+msgid "Metadata Quality..."
 msgstr ""
 
 #: ui.py:496
-msgid "Configurações..."
+msgid "Settings..."
 msgstr ""
 
 #: ui.py:497
-msgid "Reindexar Biblioteca"
+msgid "Re-index Library"
 msgstr ""
 
 #: ui.py:537
-msgid "Preparando indexação..."
+msgid "Preparing indexing..."
 msgstr ""
 
 #: ui.py:538
-msgid "Indexando Biblioteca"
+msgid "Indexing Library"
 msgstr ""
 
 #: ui.py:550
 #, python-brace-format
-msgid "Indexando: {current} / {total} livros..."
+msgid "Indexing: {current} / {total} books..."
 msgstr ""
 
 #: ui.py:566
-msgid "Erro na indexação"
+msgid "Indexing error"
 msgstr ""
 
 #: ui.py:567
 #, python-brace-format
 msgid ""
-"Erro ao construir índice:\n"
+"Error building index:\n"
 "{error}"
 msgstr ""
 
 #: ui.py:580
-msgid "Smart Book Recommender — Configurações"
+msgid "Smart Book Recommender — Settings"
 msgstr ""
 
 #: ui.py:613
-msgid "Analisando metadados..."
+msgid "Analysing metadata..."
 msgstr ""
 
 #: ui.py:625
-msgid "Metadados em boa forma"
+msgid "Metadata looks good"
 msgstr ""
 
 #: ui.py:626
 #, python-brace-format
-msgid "Nenhum livro encontrado com score abaixo de {threshold}%."
+msgid "No books found with a score below {threshold}%."
 msgstr ""
 
 #: ui.py:646
-msgid "Nenhum livro selecionado"
+msgid "No book selected"
 msgstr ""
 
 #: ui.py:647
-msgid "Por favor, selecione um livro para obter recomendações."
+msgid "Please select a book to get recommendations."
 msgstr ""
 
 #: ui.py:660 ui.py:674 ui.py:741
-msgid "Erro"
+msgid "Error"
 msgstr ""
 
 #: ui.py:661
-msgid "Não foi possível obter ID do livro selecionado."
+msgid "Could not get the ID of the selected book."
 msgstr ""
 
 #: ui.py:675
 #, python-brace-format
 msgid ""
-"Livro ID {book_id} inválido ou não encontrado.\n"
+"Book ID {book_id} is invalid or not found.\n"
 "{error}"
 msgstr ""
 
 #: ui.py:686
-msgid "Calculando recomendações..."
+msgid "Calculating recommendations..."
 msgstr ""
 
 #: ui.py:687
-msgid "Recomendando"
+msgid "Recommending"
 msgstr ""
 
 #: ui.py:697
 #, python-brace-format
 msgid ""
-"Erro ao calcular recomendações:\n"
+"Error calculating recommendations:\n"
 "{error}\n"
 "\n"
-"Detalhes:\n"
+"Details:\n"
 "{details}"
 msgstr ""
 
 #: ui.py:701
-msgid "Erro ao recomendar"
+msgid "Recommendation error"
 msgstr ""
 
 #: ui.py:711
@@ -237,42 +237,38 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Informações do livro:\n"
+"Book information:\n"
 "- Tags: {tags}\n"
-"- Autores: {authors}\n"
-"- Idioma: {languages}\n"
-"- Série: {series}\n"
-"- Editora: {publisher}"
+"- Authors: {authors}\n"
+"- Language: {languages}\n"
+"- Series: {series}\n"
+"- Publisher: {publisher}"
 msgstr ""
 
-#: ui.py:718 ui.py:721 ui.py:722
-msgid "Nenhuma"
-msgstr ""
-
-#: ui.py:719 ui.py:720
-msgid "Nenhum"
+#: ui.py:718 ui.py:719 ui.py:720 ui.py:721 ui.py:722
+msgid "None"
 msgstr ""
 
 #: ui.py:724
-msgid "Sem recomendações"
+msgid "No recommendations"
 msgstr ""
 
 #: ui.py:725
-msgid "Não foram encontrados livros similares."
+msgid "No similar books found."
 msgstr ""
 
 #: ui.py:726
 msgid ""
-"Dicas:\n"
-"- Adicione tags descritivas ao livro\n"
-"- Preencha metadados (autor, série, editora)\n"
-"- Verifique se há outros livros do mesmo idioma"
+"Tips:\n"
+"- Add descriptive tags to the book\n"
+"- Fill in metadata (author, series, publisher)\n"
+"- Check that other books share the same language"
 msgstr ""
 
 #: ui.py:737
 #, python-brace-format
 msgid ""
-"Erro inesperado:\n"
+"Unexpected error:\n"
 "{error}\n"
 "\n"
 "Stack trace:\n"
@@ -280,178 +276,175 @@ msgid ""
 msgstr ""
 
 #: config.py:49
-msgid "Configurações do Algoritmo"
+msgid "Algorithm Settings"
 msgstr ""
 
 #: config.py:57
-msgid "Número de recomendações a exibir"
+msgid "Number of recommendations to display"
 msgstr ""
 
 #: config.py:58
-msgid "Número de recomendações:"
+msgid "Number of recommendations:"
 msgstr ""
 
 #: config.py:65
-msgid "Similaridade mínima para exibir recomendação (0-100%)"
+msgid "Minimum similarity to display a recommendation (0-100%)"
 msgstr ""
 
 #: config.py:66
-msgid "Similaridade mínima:"
+msgid "Minimum similarity:"
 msgstr ""
 
 #: config.py:74
 msgid ""
-"Livros com score de qualidade abaixo deste valor aparecem no\n"
-"relatório de metadados incompletos (0–100%)."
+"Books with a quality score below this value appear in\n"
+"the incomplete metadata report (0–100%)."
 msgstr ""
 
 #: config.py:77
-msgid "Alerta de qualidade abaixo de:"
+msgid "Quality alert below:"
 msgstr ""
 
 #: config.py:82
-msgid "Filtro de Leitura"
+msgid "Read Filter"
 msgstr ""
 
 #: config.py:88
 msgid ""
-"Quando ativado, as recomendações incluirão apenas\n"
-"livros ainda não marcados como lidos."
+"When enabled, recommendations will only include\n"
+"books not yet marked as read."
 msgstr ""
 
 #: config.py:92
-msgid "Sugerir apenas livros não lidos:"
+msgid "Suggest only unread books:"
 msgstr ""
 
 #: config.py:94
-msgid "Coluna de leitura:"
+msgid "Read column:"
 msgstr ""
 
 #: config.py:96
-msgid "ex: read, lido, ja_li"
+msgid "e.g. read, finished, done"
 msgstr ""
 
 #: config.py:98
 msgid ""
-"Nome da coluna booleana personalizada que indica se o livro foi lido.\n"
-"Use apenas o rótulo da coluna, sem o prefixo \"#\".\n"
-"Exemplo: se a coluna se chama \"#read\", informe apenas \"read\"."
+"Name of the custom boolean column that indicates whether a book has been "
+"read.\n"
+"Use only the column label without the \"#\" prefix.\n"
+"Example: if the column is called \"#read\", enter \"read\"."
 msgstr ""
 
 #: config.py:107
-msgid "Gerenciamento de Cache"
+msgid "Cache Management"
 msgstr ""
 
 #: config.py:112
 msgid ""
-"O plugin mantém um índice da sua biblioteca para buscas rápidas.\n"
-"O índice é invalidado automaticamente quando a biblioteca é modificada.\n"
-"Use o botão abaixo caso queira forçar uma reindexação completa na\n"
-"próxima vez que abrir as recomendações."
+"The plugin maintains an index of your library for fast searches.\n"
+"The index is invalidated automatically when the library is modified.\n"
+"Use the button below to force a full re-index the\n"
+"next time you open recommendations."
 msgstr ""
 
 #: config.py:120 config.py:174
-msgid "Limpar Cache do Índice"
+msgid "Clear Index Cache"
 msgstr ""
 
 #: config.py:122
 msgid ""
-"Remove o cache do índice. O índice será reconstruído automaticamente\n"
-"na próxima pesquisa de recomendações (pode levar alguns minutos)."
+"Removes the index cache. The index will be rebuilt automatically\n"
+"on the next recommendation search (may take a few minutes)."
 msgstr ""
 
 #: config.py:131
-msgid "Informações"
+msgid "Information"
 msgstr ""
 
 #: config.py:136
 msgid ""
-"<b>Como funciona:</b><br/>O plugin analisa tags, autores, séries, editoras e "
-"anos de publicação para encontrar livros similares em sua biblioteca.<br/"
-"><br/><b>Dicas para melhores resultados:</b><br/>• Mantenha tags organizadas "
-"e consistentes<br/>• Preencha metadados (autor, série, editora)<br/>• Use "
-"tags descritivas (gênero, tópicos, etc.)"
+"<b>How it works:</b><br/>The plugin analyses tags, authors, series, "
+"publishers, and publication years to find similar books in your library.<br/"
+"><br/><b>Tips for better results:</b><br/>• Keep tags organised and "
+"consistent<br/>• Fill in metadata (author, series, publisher)<br/>• Use "
+"descriptive tags (genre, topics, etc.)"
 msgstr ""
 
 #: config.py:175
 msgid ""
-"O cache do índice será removido.\n"
+"The index cache will be removed.\n"
 "\n"
-"O índice será reconstruído automaticamente na próxima pesquisa de "
-"recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n"
+"The index will be rebuilt automatically on the next recommendation search. "
+"For large libraries this may take a few minutes.\n"
 "\n"
-"Continuar?"
+"Continue?"
 msgstr ""
 
 #: config.py:208
 msgid ""
-"Cache removido com sucesso.\n"
+"Cache cleared successfully.\n"
 "\n"
-"O índice será reconstruído automaticamente na próxima pesquisa."
+"The index will be rebuilt automatically on the next search."
 msgstr ""
 
 #: config.py:211
-msgid "Nenhum cache encontrado. O índice já será gerado na próxima pesquisa."
+msgid "No cache found. The index will be generated on the next search."
 msgstr ""
 
 #: config.py:213
-msgid "Cache Limpo"
+msgid "Cache Cleared"
 msgstr ""
 
 #: engine.py:281
-msgid "Sem tags"
+msgid "No tags"
 msgstr ""
 
 #: engine.py:286
-msgid "Apenas tags pessoais"
+msgid "Only personal tags"
 msgstr ""
 
 #: engine.py:289
-msgid "Poucas tags descritivas (< 2)"
+msgid "Too few descriptive tags (< 2)"
 msgstr ""
 
 #: engine.py:294
-msgid "Sem autor"
+msgid "No author"
 msgstr ""
 
 #: engine.py:300
-msgid "Série ausente (título sugere sequência)"
+msgid "Series missing (title suggests a sequence)"
 msgstr ""
 
 #: engine.py:305
-msgid "Sem editora"
+msgid "No publisher"
 msgstr ""
 
 #: engine.py:310
-msgid "Sem sinopse"
+msgid "No synopsis"
 msgstr ""
 
 #: engine.py:315
-msgid "Sem data de publicação"
-msgstr ""
-
-#: engine.py:632
-msgid "Informações não disponíveis"
+msgid "No publication date"
 msgstr ""
 
 #: engine.py:643
 #, python-brace-format
-msgid "Mesmo autor: {author}"
+msgid "Same author: {author}"
 msgstr ""
 
 #: engine.py:645
 #, python-brace-format
-msgid "Mesmos autores: {authors}"
+msgid "Same authors: {authors}"
 msgstr ""
 
 #: engine.py:653
 #, python-brace-format
-msgid "Série: {series} #{index}"
+msgid "Series: {series} #{index}"
 msgstr ""
 
 #: engine.py:657
 #, python-brace-format
-msgid "Série: {series}"
+msgid "Series: {series}"
 msgstr ""
 
 #: engine.py:667
@@ -461,9 +454,9 @@ msgstr ""
 
 #: engine.py:672
 #, python-brace-format
-msgid "Editora: {publisher}"
+msgid "Publisher: {publisher}"
 msgstr ""
 
 #: engine.py:675
-msgid "Semelhança de metadados"
+msgid "Metadata similarity"
 msgstr ""

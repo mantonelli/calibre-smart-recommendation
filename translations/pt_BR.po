@@ -1,0 +1,423 @@
+# Tradução brasileira do Smart Book Recommender
+# Copyright (C) 2024
+# This file is distributed under the same license as the plugin.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Smart Book Recommender 1.4.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-06 00:45-0300\n"
+"PO-Revision-Date: 2026-05-06 00:00-0300\n"
+"Last-Translator: Smart Book Recommender contributors\n"
+"Language-Team: Portuguese (Brazil)\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "<i>Select<br/>a book</i>"
+msgstr "<i>Selecione<br/>um livro</i>"
+
+msgid "Authors"
+msgstr "Autores"
+
+msgid "Series"
+msgstr "Série"
+
+msgid "Tags"
+msgstr "Tags"
+
+msgid "Rating"
+msgstr "Avaliação"
+
+msgid "Formats"
+msgstr "Formatos"
+
+msgid "Publisher"
+msgstr "Editora"
+
+msgid "Year"
+msgstr "Ano"
+
+msgid "<i>(no cover)</i>"
+msgstr "<i>(sem capa)</i>"
+
+msgid "Similar Book Recommendations"
+msgstr "Recomendações de Livros Similares"
+
+msgid "Untitled"
+msgstr "Sem título"
+
+msgid "Unknown author"
+msgstr "Autor desconhecido"
+
+msgid "Information unavailable"
+msgstr "Informação não disponível"
+
+#, python-brace-format
+msgid ""
+"<h2>Recommendations based on:</h2><p><b>{title}</b><br/>by {authors}</p>"
+msgstr ""
+"<h2>Recomendações baseadas em:</h2><p><b>{title}</b><br/>por {authors}</p>"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Author(s)"
+msgstr "Autor(es)"
+
+msgid "Similarity"
+msgstr "Similaridade"
+
+msgid "Reason"
+msgstr "Razão"
+
+msgid "View Book"
+msgstr "Ver Livro"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Unknown"
+msgstr "Desconhecido"
+
+msgid "Metadata Quality"
+msgstr "Qualidade dos Metadados"
+
+#, python-brace-format
+msgid ""
+"<b>{count} book(s)</b> with a score below {threshold}% — sorted from most "
+"to least incomplete."
+msgstr ""
+"<b>{count} livro(s)</b> com score abaixo de {threshold}% — ordenados do "
+"mais incompleto para o mais completo."
+
+msgid "Score"
+msgstr "Score"
+
+msgid "Issues"
+msgstr "Problemas"
+
+msgid "Edit Metadata"
+msgstr "Editar Metadados"
+
+msgid "Recommend Similar"
+msgstr "Recomendar Similares"
+
+msgid "Find books similar to the selected one"
+msgstr "Encontra livros similares ao selecionado"
+
+msgid "Metadata Quality..."
+msgstr "Qualidade dos Metadados..."
+
+msgid "Settings..."
+msgstr "Configurações..."
+
+msgid "Re-index Library"
+msgstr "Reindexar Biblioteca"
+
+msgid "Preparing indexing..."
+msgstr "Preparando indexação..."
+
+msgid "Indexing Library"
+msgstr "Indexando Biblioteca"
+
+#, python-brace-format
+msgid "Indexing: {current} / {total} books..."
+msgstr "Indexando: {current} / {total} livros..."
+
+msgid "Indexing error"
+msgstr "Erro na indexação"
+
+#, python-brace-format
+msgid ""
+"Error building index:\n"
+"{error}"
+msgstr ""
+"Erro ao construir índice:\n"
+"{error}"
+
+msgid "Smart Book Recommender — Settings"
+msgstr "Smart Book Recommender — Configurações"
+
+msgid "Analysing metadata..."
+msgstr "Analisando metadados..."
+
+msgid "Metadata looks good"
+msgstr "Metadados em boa forma"
+
+#, python-brace-format
+msgid "No books found with a score below {threshold}%."
+msgstr "Nenhum livro encontrado com score abaixo de {threshold}%."
+
+msgid "No book selected"
+msgstr "Nenhum livro selecionado"
+
+msgid "Please select a book to get recommendations."
+msgstr "Por favor, selecione um livro para obter recomendações."
+
+msgid "Error"
+msgstr "Erro"
+
+msgid "Could not get the ID of the selected book."
+msgstr "Não foi possível obter ID do livro selecionado."
+
+#, python-brace-format
+msgid ""
+"Book ID {book_id} is invalid or not found.\n"
+"{error}"
+msgstr ""
+"Livro ID {book_id} inválido ou não encontrado.\n"
+"{error}"
+
+msgid "Calculating recommendations..."
+msgstr "Calculando recomendações..."
+
+msgid "Recommending"
+msgstr "Recomendando"
+
+#, python-brace-format
+msgid ""
+"Error calculating recommendations:\n"
+"{error}\n"
+"\n"
+"Details:\n"
+"{details}"
+msgstr ""
+"Erro ao calcular recomendações:\n"
+"{error}\n"
+"\n"
+"Detalhes:\n"
+"{details}"
+
+msgid "Recommendation error"
+msgstr "Erro ao recomendar"
+
+#, python-brace-format
+msgid ""
+"\n"
+"\n"
+"Book information:\n"
+"- Tags: {tags}\n"
+"- Authors: {authors}\n"
+"- Language: {languages}\n"
+"- Series: {series}\n"
+"- Publisher: {publisher}"
+msgstr ""
+"\n"
+"\n"
+"Informações do livro:\n"
+"- Tags: {tags}\n"
+"- Autores: {authors}\n"
+"- Idioma: {languages}\n"
+"- Série: {series}\n"
+"- Editora: {publisher}"
+
+msgid "None"
+msgstr "Nenhuma"
+
+msgid "No recommendations"
+msgstr "Sem recomendações"
+
+msgid "No similar books found."
+msgstr "Não foram encontrados livros similares."
+
+msgid ""
+"Tips:\n"
+"- Add descriptive tags to the book\n"
+"- Fill in metadata (author, series, publisher)\n"
+"- Check that other books share the same language"
+msgstr ""
+"Dicas:\n"
+"- Adicione tags descritivas ao livro\n"
+"- Preencha metadados (autor, série, editora)\n"
+"- Verifique se há outros livros do mesmo idioma"
+
+#, python-brace-format
+msgid ""
+"Unexpected error:\n"
+"{error}\n"
+"\n"
+"Stack trace:\n"
+"{details}"
+msgstr ""
+"Erro inesperado:\n"
+"{error}\n"
+"\n"
+"Stack trace:\n"
+"{details}"
+
+msgid "Algorithm Settings"
+msgstr "Configurações do Algoritmo"
+
+msgid "Number of recommendations to display"
+msgstr "Número de recomendações a exibir"
+
+msgid "Number of recommendations:"
+msgstr "Número de recomendações:"
+
+msgid "Minimum similarity to display a recommendation (0-100%)"
+msgstr "Similaridade mínima para exibir recomendação (0-100%)"
+
+msgid "Minimum similarity:"
+msgstr "Similaridade mínima:"
+
+msgid ""
+"Books with a quality score below this value appear in\n"
+"the incomplete metadata report (0–100%)."
+msgstr ""
+"Livros com score de qualidade abaixo deste valor aparecem no\n"
+"relatório de metadados incompletos (0–100%)."
+
+msgid "Quality alert below:"
+msgstr "Alerta de qualidade abaixo de:"
+
+msgid "Read Filter"
+msgstr "Filtro de Leitura"
+
+msgid ""
+"When enabled, recommendations will only include\n"
+"books not yet marked as read."
+msgstr ""
+"Quando ativado, as recomendações incluirão apenas\n"
+"livros ainda não marcados como lidos."
+
+msgid "Suggest only unread books:"
+msgstr "Sugerir apenas livros não lidos:"
+
+msgid "Read column:"
+msgstr "Coluna de leitura:"
+
+msgid "e.g. read, finished, done"
+msgstr "ex: read, lido, ja_li"
+
+msgid ""
+"Name of the custom boolean column that indicates whether a book has been read.\n"
+"Use only the column label without the \"#\" prefix.\n"
+"Example: if the column is called \"#read\", enter \"read\"."
+msgstr ""
+"Nome da coluna booleana personalizada que indica se o livro foi lido.\n"
+"Use apenas o rótulo da coluna, sem o prefixo \"#\".\n"
+"Exemplo: se a coluna se chama \"#read\", informe apenas \"read\"."
+
+msgid "Cache Management"
+msgstr "Gerenciamento de Cache"
+
+msgid ""
+"The plugin maintains an index of your library for fast searches.\n"
+"The index is invalidated automatically when the library is modified.\n"
+"Use the button below to force a full re-index the\n"
+"next time you open recommendations."
+msgstr ""
+"O plugin mantém um índice da sua biblioteca para buscas rápidas.\n"
+"O índice é invalidado automaticamente quando a biblioteca é modificada.\n"
+"Use o botão abaixo caso queira forçar uma reindexação completa na\n"
+"próxima vez que abrir as recomendações."
+
+msgid "Clear Index Cache"
+msgstr "Limpar Cache do Índice"
+
+msgid ""
+"Removes the index cache. The index will be rebuilt automatically\n"
+"on the next recommendation search (may take a few minutes)."
+msgstr ""
+"Remove o cache do índice. O índice será reconstruído automaticamente\n"
+"na próxima pesquisa de recomendações (pode levar alguns minutos)."
+
+msgid "Information"
+msgstr "Informações"
+
+msgid ""
+"<b>How it works:</b><br/>The plugin analyses tags, authors, series, publishers, "
+"and publication years to find similar books in your library.<br/>"
+"<br/><b>Tips for better results:</b><br/>• Keep tags organised and consistent<br/>"
+"• Fill in metadata (author, series, publisher)<br/>• Use descriptive tags "
+"(genre, topics, etc.)"
+msgstr ""
+"<b>Como funciona:</b><br/>O plugin analisa tags, autores, séries, editoras e "
+"anos de publicação para encontrar livros similares em sua biblioteca.<br/>"
+"<br/><b>Dicas para melhores resultados:</b><br/>• Mantenha tags organizadas "
+"e consistentes<br/>• Preencha metadados (autor, série, editora)<br/>• Use "
+"tags descritivas (gênero, tópicos, etc.)"
+
+msgid ""
+"The index cache will be removed.\n"
+"\n"
+"The index will be rebuilt automatically on the next recommendation search. "
+"For large libraries this may take a few minutes.\n"
+"\n"
+"Continue?"
+msgstr ""
+"O cache do índice será removido.\n"
+"\n"
+"O índice será reconstruído automaticamente na próxima pesquisa de "
+"recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n"
+"\n"
+"Continuar?"
+
+msgid ""
+"Cache cleared successfully.\n"
+"\n"
+"The index will be rebuilt automatically on the next search."
+msgstr ""
+"Cache removido com sucesso.\n"
+"\n"
+"O índice será reconstruído automaticamente na próxima pesquisa."
+
+msgid "No cache found. The index will be generated on the next search."
+msgstr "Nenhum cache encontrado. O índice já será gerado na próxima pesquisa."
+
+msgid "Cache Cleared"
+msgstr "Cache Limpo"
+
+msgid "No tags"
+msgstr "Sem tags"
+
+msgid "Only personal tags"
+msgstr "Apenas tags pessoais"
+
+msgid "Too few descriptive tags (< 2)"
+msgstr "Poucas tags descritivas (< 2)"
+
+msgid "No author"
+msgstr "Sem autor"
+
+msgid "Series missing (title suggests a sequence)"
+msgstr "Série ausente (título sugere sequência)"
+
+msgid "No publisher"
+msgstr "Sem editora"
+
+msgid "No synopsis"
+msgstr "Sem sinopse"
+
+msgid "No publication date"
+msgstr "Sem data de publicação"
+
+#, python-brace-format
+msgid "Same author: {author}"
+msgstr "Mesmo autor: {author}"
+
+#, python-brace-format
+msgid "Same authors: {authors}"
+msgstr "Mesmos autores: {authors}"
+
+#, python-brace-format
+msgid "Series: {series} #{index}"
+msgstr "Série: {series} #{index}"
+
+#, python-brace-format
+msgid "Series: {series}"
+msgstr "Série: {series}"
+
+#, python-brace-format
+msgid "Tags: {tags}"
+msgstr "Tags: {tags}"
+
+#, python-brace-format
+msgid "Publisher: {publisher}"
+msgstr "Editora: {publisher}"
+
+msgid "Metadata similarity"
+msgstr "Semelhança de metadados"

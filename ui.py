@@ -132,7 +132,7 @@ class BookDetailPanel(QWidget):
         self._clear()
 
     def _clear(self):
-        self.cover_label.setText(_('<i>Selecione<br/>um livro</i>'))
+        self.cover_label.setText(_('<i>Select<br/>a book</i>'))
         self.cover_label.setAlignment(AlignCenter)
         while self._fields_layout.count():
             item = self._fields_layout.takeAt(0)
@@ -161,14 +161,14 @@ class BookDetailPanel(QWidget):
 
         row = 0
         if book_info['authors']:
-            self._add_row(row, _('Autores'), ', '.join(book_info['authors']))
+            self._add_row(row, _('Authors'), ', '.join(book_info['authors']))
             row += 1
 
         if book_info['series']:
             series = book_info['series']
             if book_info.get('series_index'):
                 series += f' #{int(book_info["series_index"])}'
-            self._add_row(row, _('Série'), series)
+            self._add_row(row, _('Series'), series)
             row += 1
 
         if book_info['tags']:
@@ -178,19 +178,19 @@ class BookDetailPanel(QWidget):
         if book_info['rating']:
             filled = int(book_info['rating'] / 2)
             stars = '★' * filled + '☆' * (5 - filled)
-            self._add_row(row, _('Avaliação'), stars)
+            self._add_row(row, _('Rating'), stars)
             row += 1
 
         if book_info['formats']:
-            self._add_row(row, _('Formatos'), ', '.join(book_info['formats']))
+            self._add_row(row, _('Formats'), ', '.join(book_info['formats']))
             row += 1
 
         if book_info['publisher']:
-            self._add_row(row, _('Editora'), book_info['publisher'])
+            self._add_row(row, _('Publisher'), book_info['publisher'])
             row += 1
 
         if book_info['pubdate'] and hasattr(book_info['pubdate'], 'year'):
-            self._add_row(row, _('Ano'), str(book_info['pubdate'].year))
+            self._add_row(row, _('Year'), str(book_info['pubdate'].year))
 
     def _load_cover(self, book_id):
         if book_id in self._cover_cache:
@@ -212,7 +212,7 @@ class BookDetailPanel(QWidget):
                 return
         except Exception:
             pass
-        self.cover_label.setText(_('<i>(sem capa)</i>'))
+        self.cover_label.setText(_('<i>(no cover)</i>'))
         self.cover_label.setAlignment(AlignCenter)
 
 
@@ -226,7 +226,7 @@ class RecommenderDialog(QDialog):
         self.recommendations = recommendations
         self.engine = engine
 
-        self.setWindowTitle(_('Recomendações de Livros Similares'))
+        self.setWindowTitle(_('Similar Book Recommendations'))
         self.setMinimumWidth(1050)
         self.setMinimumHeight(520)
 
@@ -240,21 +240,21 @@ class RecommenderDialog(QDialog):
         db = self.gui.current_db
         try:
             if hasattr(db, 'new_api'):
-                title = db.new_api.field_for('title', self.book_id) or _('Sem título')
+                title = db.new_api.field_for('title', self.book_id) or _('Untitled')
                 authors = db.new_api.field_for('authors', self.book_id) or []
-                authors_text = ', '.join(authors) if authors else _('Autor desconhecido')
+                authors_text = ', '.join(authors) if authors else _('Unknown author')
             else:
                 meta = db.get_metadata(self.book_id, index_is_id=True)
                 title = meta.title
-                authors_text = ', '.join(meta.authors) if meta.authors else _('Autor desconhecido')
+                authors_text = ', '.join(meta.authors) if meta.authors else _('Unknown author')
         except Exception as e:
             log.warning("Erro ao obter metadados do livro %d: %s", self.book_id, e)
-            title = f'Livro ID {self.book_id}'
-            authors_text = _('Informação não disponível')
+            title = f'Book ID {self.book_id}'
+            authors_text = _('Information unavailable')
 
         layout.addWidget(QLabel(
-            _('<h2>Recomendações baseadas em:</h2>'
-              '<p><b>{title}</b><br/>por {authors}</p>').format(
+            _('<h2>Recommendations based on:</h2>'
+              '<p><b>{title}</b><br/>by {authors}</p>').format(
                   title=title, authors=authors_text)
         ))
 
@@ -263,7 +263,7 @@ class RecommenderDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels([
-            _('Título'), _('Autor(es)'), _('Similaridade'), _('Razão')
+            _('Title'), _('Author(s)'), _('Similarity'), _('Reason')
         ])
         self.table.setSelectionBehavior(SelectRows)
         self.table.setSelectionMode(SingleSelection)
@@ -296,10 +296,10 @@ class RecommenderDialog(QDialog):
         layout.addWidget(splitter, 1)
 
         button_layout = QHBoxLayout()
-        self.view_button = QPushButton(_('Ver Livro'))
+        self.view_button = QPushButton(_('View Book'))
         self.view_button.clicked.connect(self._on_view_book)
         button_layout.addWidget(self.view_button)
-        self.close_button = QPushButton(_('Fechar'))
+        self.close_button = QPushButton(_('Close'))
         self.close_button.clicked.connect(self.accept)
         button_layout.addWidget(self.close_button)
         button_layout.addStretch()
@@ -313,7 +313,7 @@ class RecommenderDialog(QDialog):
             title_item.setData(UserRole, book_id)
             self.table.setItem(row, 0, title_item)
 
-            author_item = QTableWidgetItem(', '.join(authors) if authors else _('Desconhecido'))
+            author_item = QTableWidgetItem(', '.join(authors) if authors else _('Unknown'))
             self.table.setItem(row, 1, author_item)
 
             similarity_item = QTableWidgetItem(f'{score * 100:.1f}%')
@@ -366,7 +366,7 @@ class QualityReportDialog(QDialog):
         self.report = report
         self.min_score = min_score
 
-        self.setWindowTitle(_('Qualidade dos Metadados'))
+        self.setWindowTitle(_('Metadata Quality'))
         self.setMinimumWidth(900)
         self.setMinimumHeight(500)
         self._setup_ui()
@@ -378,8 +378,8 @@ class QualityReportDialog(QDialog):
 
         count = len(self.report)
         self.summary_label = QLabel(
-            _('<b>{count} livro(s)</b> com score abaixo de {threshold}% — '
-              'ordenados do mais incompleto para o mais completo.').format(
+            _('<b>{count} book(s)</b> with a score below {threshold}% — '
+              'sorted from most to least incomplete.').format(
                   count=count, threshold=self.min_score)
         )
         layout.addWidget(self.summary_label)
@@ -387,7 +387,7 @@ class QualityReportDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels([
-            _('Título'), _('Autor(es)'), _('Score'), _('Problemas')
+            _('Title'), _('Author(s)'), _('Score'), _('Issues')
         ])
         self.table.setSelectionBehavior(SelectRows)
         self.table.setSelectionMode(SingleSelection)
@@ -414,11 +414,11 @@ class QualityReportDialog(QDialog):
         layout.addWidget(self.table, 1)
 
         btn_layout = QHBoxLayout()
-        self.edit_button = QPushButton(_('Editar Metadados'))
+        self.edit_button = QPushButton(_('Edit Metadata'))
         self.edit_button.clicked.connect(self._open_metadata_editor)
         btn_layout.addWidget(self.edit_button)
         btn_layout.addStretch()
-        close_btn = QPushButton(_('Fechar'))
+        close_btn = QPushButton(_('Close'))
         close_btn.clicked.connect(self.accept)
         btn_layout.addWidget(close_btn)
         layout.addLayout(btn_layout)
@@ -433,7 +433,7 @@ class QualityReportDialog(QDialog):
             title_item.setData(UserRole, entry['id'])
             self.table.setItem(row, 0, title_item)
 
-            authors_text = ', '.join(entry['authors']) if entry['authors'] else _('Desconhecido')
+            authors_text = ', '.join(entry['authors']) if entry['authors'] else _('Unknown')
             self.table.setItem(row, 1, QTableWidgetItem(authors_text))
 
             score_item = QTableWidgetItem(f'{score}%')
@@ -477,8 +477,8 @@ class RecommenderAction(InterfaceAction):
 
     name = 'Smart Book Recommender'
     action_spec = (
-        _('Recomendar Similares'), None,
-        _('Encontra livros similares ao selecionado'), None,
+        _('Recommend Similar'), None,
+        _('Find books similar to the selected one'), None,
     )
     action_type = 'current'
     popup_type = PopupMode  # split button: clique → recomendar, seta → menu
@@ -489,12 +489,12 @@ class RecommenderAction(InterfaceAction):
         self.engine = None
 
         menu = QMenu()
-        menu.addAction(_('Recomendar Similares'), self.show_recommendations)
+        menu.addAction(_('Recommend Similar'), self.show_recommendations)
         menu.addSeparator()
-        menu.addAction(_('Qualidade dos Metadados...'), self._show_quality_report)
+        menu.addAction(_('Metadata Quality...'), self._show_quality_report)
         menu.addSeparator()
-        menu.addAction(_('Configurações...'), self._show_config)
-        menu.addAction(_('Reindexar Biblioteca'), self._force_reindex)
+        menu.addAction(_('Settings...'), self._show_config)
+        menu.addAction(_('Re-index Library'), self._force_reindex)
         self.qaction.setMenu(menu)
 
     # ------------------------------------------------------------------
@@ -534,8 +534,8 @@ class RecommenderAction(InterfaceAction):
 
     def _build_index_with_progress(self):
         """Constrói o índice com barra de progresso. Retorna True em sucesso."""
-        progress = QProgressDialog(_('Preparando indexação...'), None, 0, 0, self.gui)
-        progress.setWindowTitle(_('Indexando Biblioteca'))
+        progress = QProgressDialog(_('Preparing indexing...'), None, 0, 0, self.gui)
+        progress.setWindowTitle(_('Indexing Library'))
         progress.setWindowModality(WindowModal)
         progress.show()
 
@@ -547,7 +547,7 @@ class RecommenderAction(InterfaceAction):
             progress.setMaximum(total)
             progress.setValue(current)
             progress.setLabelText(
-                _('Indexando: {current} / {total} livros...').format(
+                _('Indexing: {current} / {total} books...').format(
                     current=current, total=total)
             )
 
@@ -563,8 +563,8 @@ class RecommenderAction(InterfaceAction):
         progress.close()
 
         if error_holder[0]:
-            error_dialog(self.gui, _('Erro na indexação'),
-                         _('Erro ao construir índice:\n{error}').format(error=error_holder[0]),
+            error_dialog(self.gui, _('Indexing error'),
+                         _('Error building index:\n{error}').format(error=error_holder[0]),
                          show=True)
             return False
 
@@ -577,7 +577,7 @@ class RecommenderAction(InterfaceAction):
         from calibre_plugins.recommender.config import ConfigWidget
 
         d = QDialog(self.gui)
-        d.setWindowTitle(_('Smart Book Recommender — Configurações'))
+        d.setWindowTitle(_('Smart Book Recommender — Settings'))
         layout = QVBoxLayout()
         d.setLayout(layout)
 
@@ -610,8 +610,8 @@ class RecommenderAction(InterfaceAction):
         prefs = self.load_preferences()
         min_score = int(prefs.get('quality_min_score', 70))
 
-        progress = QProgressDialog(_('Analisando metadados...'), None, 0, 0, self.gui)
-        progress.setWindowTitle(_('Qualidade dos Metadados'))
+        progress = QProgressDialog(_('Analysing metadata...'), None, 0, 0, self.gui)
+        progress.setWindowTitle(_('Metadata Quality'))
         progress.setWindowModality(WindowModal)
         progress.show()
         try:
@@ -622,8 +622,8 @@ class RecommenderAction(InterfaceAction):
         if not report:
             info_dialog(
                 self.gui,
-                _('Metadados em boa forma'),
-                _('Nenhum livro encontrado com score abaixo de {threshold}%.').format(
+                _('Metadata looks good'),
+                _('No books found with a score below {threshold}%.').format(
                     threshold=min_score),
                 show=True,
             )
@@ -643,8 +643,8 @@ class RecommenderAction(InterfaceAction):
     def show_recommendations(self):
         rows = self.gui.library_view.selectionModel().selectedRows()
         if not rows:
-            error_dialog(self.gui, _('Nenhum livro selecionado'),
-                         _('Por favor, selecione um livro para obter recomendações.'),
+            error_dialog(self.gui, _('No book selected'),
+                         _('Please select a book to get recommendations.'),
                          show=True)
             return
 
@@ -657,8 +657,8 @@ class RecommenderAction(InterfaceAction):
                 book_id = self.gui.library_view.model().id(rows[0])
 
             if book_id is None or book_id < 1:
-                error_dialog(self.gui, _('Erro'),
-                             _('Não foi possível obter ID do livro selecionado.'),
+                error_dialog(self.gui, _('Error'),
+                             _('Could not get the ID of the selected book.'),
                              show=True)
                 return
 
@@ -671,8 +671,8 @@ class RecommenderAction(InterfaceAction):
                     title = db.get_metadata(book_id).title
                 log.debug("Livro selecionado: %s", title)
             except Exception as e:
-                error_dialog(self.gui, _('Erro'),
-                             _('Livro ID {book_id} inválido ou não encontrado.\n{error}').format(
+                error_dialog(self.gui, _('Error'),
+                             _('Book ID {book_id} is invalid or not found.\n{error}').format(
                                  book_id=book_id, error=e),
                              show=True)
                 return
@@ -683,8 +683,8 @@ class RecommenderAction(InterfaceAction):
                 if not self._build_index_with_progress():
                     return
 
-            progress = QProgressDialog(_('Calculando recomendações...'), None, 0, 0, self.gui)
-            progress.setWindowTitle(_('Recomendando'))
+            progress = QProgressDialog(_('Calculating recommendations...'), None, 0, 0, self.gui)
+            progress.setWindowTitle(_('Recommending'))
             progress.setWindowModality(WindowModal)
             progress.show()
 
@@ -694,11 +694,11 @@ class RecommenderAction(InterfaceAction):
                 log.debug("%d recomendações encontradas", len(recommendations))
             except Exception as e:
                 import traceback
-                error_msg = _('Erro ao calcular recomendações:\n{error}\n\nDetalhes:\n{details}').format(
+                error_msg = _('Error calculating recommendations:\n{error}\n\nDetails:\n{details}').format(
                     error=e, details=traceback.format_exc()
                 )
                 log.error(error_msg)
-                error_dialog(self.gui, _('Erro ao recomendar'), error_msg, show=True)
+                error_dialog(self.gui, _('Recommendation error'), error_msg, show=True)
                 return
             finally:
                 progress.close()
@@ -708,25 +708,25 @@ class RecommenderAction(InterfaceAction):
                 details = ''
                 if book_info:
                     details = _(
-                        '\n\nInformações do livro:'
+                        '\n\nBook information:'
                         '\n- Tags: {tags}'
-                        '\n- Autores: {authors}'
-                        '\n- Idioma: {languages}'
-                        '\n- Série: {series}'
-                        '\n- Editora: {publisher}'
+                        '\n- Authors: {authors}'
+                        '\n- Language: {languages}'
+                        '\n- Series: {series}'
+                        '\n- Publisher: {publisher}'
                     ).format(
-                        tags=', '.join(book_info['tags']) or _('Nenhuma'),
-                        authors=', '.join(book_info['authors']) or _('Nenhum'),
-                        languages=', '.join(book_info['languages']) or _('Nenhum'),
-                        series=book_info['series'] or _('Nenhuma'),
-                        publisher=book_info['publisher'] or _('Nenhuma'),
+                        tags=', '.join(book_info['tags']) or _('None'),
+                        authors=', '.join(book_info['authors']) or _('None'),
+                        languages=', '.join(book_info['languages']) or _('None'),
+                        series=book_info['series'] or _('None'),
+                        publisher=book_info['publisher'] or _('None'),
                     )
-                info_dialog(self.gui, _('Sem recomendações'),
-                            _('Não foram encontrados livros similares.') + details + '\n\n'
-                            + _('Dicas:\n'
-                                '- Adicione tags descritivas ao livro\n'
-                                '- Preencha metadados (autor, série, editora)\n'
-                                '- Verifique se há outros livros do mesmo idioma'),
+                info_dialog(self.gui, _('No recommendations'),
+                            _('No similar books found.') + details + '\n\n'
+                            + _('Tips:\n'
+                                '- Add descriptive tags to the book\n'
+                                '- Fill in metadata (author, series, publisher)\n'
+                                '- Check that other books share the same language'),
                             show=True)
                 return
 
@@ -734,11 +734,11 @@ class RecommenderAction(InterfaceAction):
 
         except Exception as e:
             import traceback
-            error_msg = _('Erro inesperado:\n{error}\n\nStack trace:\n{details}').format(
+            error_msg = _('Unexpected error:\n{error}\n\nStack trace:\n{details}').format(
                 error=e, details=traceback.format_exc()
             )
             log.error(error_msg)
-            error_dialog(self.gui, _('Erro'), error_msg, show=True)
+            error_dialog(self.gui, _('Error'), error_msg, show=True)
 
     def apply_settings(self):
         if self.engine:

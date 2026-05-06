@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python build.py)",
+      "Bash(unzip -l dist/recommender-1.0.0.zip)",
+      "Bash(git init *)",
+      "Bash(echo 'dist/ *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git tag *)",
+      "Bash(unzip -l dist/recommender-1.1.0.zip)",
+      "Bash(python3 *)",
+      "Bash(git checkout *)",
+      "Bash(xgettext --language=Python --keyword=_ --from-code=UTF-8 --output=translations/recommender.pot ui.py config.py engine.py)",
+      "Bash(msgfmt translations/en.po -o translations/en.mo)",
+      "Read(//usr/**)",
+      "Read(//opt/**)",
+      "Read(//home/**)",
+      "Bash(calibre-debug -c \"import calibre.utils.localization as l, inspect; src=inspect.getsource\\(l.load_translations\\); print\\(src[:3000]\\)\")",
+      "Bash(calibre-debug *)",
+      "Bash(msgfmt translations/pt_BR.po -o translations/pt_BR.mo)"
+    ]
+  }
+}

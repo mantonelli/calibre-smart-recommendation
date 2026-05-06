@@ -71,7 +71,7 @@ class RecommendationEngine:
         if self.use_new_api:
             proxy = self.db.new_api
             return {
-                'title': proxy.field_for('title', book_id) or _('Sem título'),
+                'title': proxy.field_for('title', book_id) or _('Untitled'),
                 'authors': proxy.field_for('authors', book_id) or [],
                 'tags': proxy.field_for('tags', book_id) or [],
                 'series': proxy.field_for('series', book_id),
@@ -86,7 +86,7 @@ class RecommendationEngine:
         else:
             metadata = self.db.get_metadata(book_id)
             return {
-                'title': metadata.title or _('Sem título'),
+                'title': metadata.title or _('Untitled'),
                 'authors': list(metadata.authors) if metadata.authors else [],
                 'tags': list(metadata.tags) if metadata.tags else [],
                 'series': metadata.series,
@@ -278,41 +278,41 @@ class RecommendationEngine:
         tags = book_info['tags']
         if not tags:
             score -= 40
-            issues.append(_('Sem tags'))
+            issues.append(_('No tags'))
         else:
             meaningful = [t for t in tags if t.lower() not in self._PERSONAL_TAGS]
             if not meaningful:
                 score -= 20
-                issues.append(_('Apenas tags pessoais'))
+                issues.append(_('Only personal tags'))
             elif len(meaningful) < 2:
                 score -= 10
-                issues.append(_('Poucas tags descritivas (< 2)'))
+                issues.append(_('Too few descriptive tags (< 2)'))
 
-        # Autor — 20 pts
+        # Author — 20 pts
         if not book_info['authors']:
             score -= 20
-            issues.append(_('Sem autor'))
+            issues.append(_('No author'))
 
-        # Série — 15 pts (só penaliza quando título sugere sequência)
+        # Series — 15 pts (only penalises when title suggests a sequence)
         if not book_info['series']:
             if self._SEQUENCE_RE.search(book_info['title']):
                 score -= 15
-                issues.append(_('Série ausente (título sugere sequência)'))
+                issues.append(_('Series missing (title suggests a sequence)'))
 
-        # Editora — 10 pts
+        # Publisher — 10 pts
         if not book_info['publisher']:
             score -= 10
-            issues.append(_('Sem editora'))
+            issues.append(_('No publisher'))
 
-        # Sinopse — 10 pts
+        # Synopsis — 10 pts
         if not book_info['comments']:
             score -= 10
-            issues.append(_('Sem sinopse'))
+            issues.append(_('No synopsis'))
 
-        # Ano de publicação — 5 pts
+        # Publication date — 5 pts
         if not book_info['pubdate']:
             score -= 5
-            issues.append(_('Sem data de publicação'))
+            issues.append(_('No publication date'))
 
         return max(0, score), issues
 
@@ -629,35 +629,35 @@ class RecommendationEngine:
         book2 = self.metadata_index['books'].get(recommended_id)
         
         if not book1 or not book2:
-            return _('Informações não disponíveis')
+            return _('Information unavailable')
 
         reasons = []
 
-        # 1. Mesmo autor
+        # 1. Same author
         authors1 = set(a.lower() for a in book1['authors'])
         authors2 = set(a.lower() for a in book2['authors'])
         common_authors = authors1 & authors2
         if common_authors:
             matching = [a for a in book2['authors'] if a.lower() in common_authors]
             if len(matching) == 1:
-                reasons.append(_('Mesmo autor: {author}').format(author=matching[0]))
+                reasons.append(_('Same author: {author}').format(author=matching[0]))
             else:
-                reasons.append(_('Mesmos autores: {authors}').format(
+                reasons.append(_('Same authors: {authors}').format(
                     authors=', '.join(matching)))
 
-        # 2. Mesma série
+        # 2. Same series
         if book1['series'] and book2['series']:
             if book1['series'].lower() == book2['series'].lower():
                 idx2 = book2.get('series_index')
                 if idx2:
-                    series_label = _('Série: {series} #{index}').format(
+                    series_label = _('Series: {series} #{index}').format(
                         series=book2['series'], index=int(idx2) if idx2 == int(idx2) else idx2
                     )
                 else:
-                    series_label = _('Série: {series}').format(series=book2['series'])
+                    series_label = _('Series: {series}').format(series=book2['series'])
                 reasons.append(series_label)
 
-        # 3. Tags em comum (máx. 3)
+        # 3. Common tags (max 3)
         tags1 = set(t.lower() for t in book1['tags'])
         tags2 = set(t.lower() for t in book2['tags'])
         common_tags = tags1 & tags2
@@ -666,12 +666,12 @@ class RecommendationEngine:
             if original_tags:
                 reasons.append(_('Tags: {tags}').format(tags=', '.join(original_tags)))
 
-        # 4. Mesma editora (só se poucas razões)
+        # 4. Same publisher (only if few reasons so far)
         if len(reasons) < 2 and book1['publisher'] and book2['publisher']:
             if book1['publisher'].lower() == book2['publisher'].lower():
-                reasons.append(_('Editora: {publisher}').format(publisher=book2['publisher']))
+                reasons.append(_('Publisher: {publisher}').format(publisher=book2['publisher']))
 
         if not reasons:
-            return _('Semelhança de metadados')
+            return _('Metadata similarity')
 
         return ' • '.join(reasons)

@@ -46,7 +46,7 @@ class ConfigWidget(QWidget):
         self.setLayout(layout)
 
         # Grupo: Algoritmo
-        algo_group = QGroupBox(_('Configurações do Algoritmo'))
+        algo_group = QGroupBox(_('Algorithm Settings'))
         algo_layout = QFormLayout()
         algo_group.setLayout(algo_layout)
 
@@ -54,16 +54,16 @@ class ConfigWidget(QWidget):
         self.top_n_spinbox.setMinimum(5)
         self.top_n_spinbox.setMaximum(50)
         self.top_n_spinbox.setSingleStep(5)
-        self.top_n_spinbox.setToolTip(_('Número de recomendações a exibir'))
-        algo_layout.addRow(_('Número de recomendações:'), self.top_n_spinbox)
+        self.top_n_spinbox.setToolTip(_('Number of recommendations to display'))
+        algo_layout.addRow(_('Number of recommendations:'), self.top_n_spinbox)
 
         self.min_sim_spinbox = QSpinBox()
         self.min_sim_spinbox.setMinimum(0)
         self.min_sim_spinbox.setMaximum(100)
         self.min_sim_spinbox.setSingleStep(5)
         self.min_sim_spinbox.setSuffix('%')
-        self.min_sim_spinbox.setToolTip(_('Similaridade mínima para exibir recomendação (0-100%)'))
-        algo_layout.addRow(_('Similaridade mínima:'), self.min_sim_spinbox)
+        self.min_sim_spinbox.setToolTip(_('Minimum similarity to display a recommendation (0-100%)'))
+        algo_layout.addRow(_('Minimum similarity:'), self.min_sim_spinbox)
 
         self.quality_score_spinbox = QSpinBox()
         self.quality_score_spinbox.setMinimum(0)
@@ -71,56 +71,56 @@ class ConfigWidget(QWidget):
         self.quality_score_spinbox.setSingleStep(5)
         self.quality_score_spinbox.setSuffix('%')
         self.quality_score_spinbox.setToolTip(_(
-            'Livros com score de qualidade abaixo deste valor aparecem no\n'
-            'relatório de metadados incompletos (0–100%).'
+            'Books with a quality score below this value appear in\n'
+            'the incomplete metadata report (0–100%).'
         ))
-        algo_layout.addRow(_('Alerta de qualidade abaixo de:'), self.quality_score_spinbox)
+        algo_layout.addRow(_('Quality alert below:'), self.quality_score_spinbox)
 
         layout.addWidget(algo_group)
 
         # Grupo: Filtro de Leitura
-        filter_group = QGroupBox(_('Filtro de Leitura'))
+        filter_group = QGroupBox(_('Read Filter'))
         filter_layout = QFormLayout()
         filter_group.setLayout(filter_layout)
 
         self.filter_unread_checkbox = QCheckBox()
         self.filter_unread_checkbox.setToolTip(_(
-            'Quando ativado, as recomendações incluirão apenas\n'
-            'livros ainda não marcados como lidos.'
+            'When enabled, recommendations will only include\n'
+            'books not yet marked as read.'
         ))
         self.filter_unread_checkbox.toggled.connect(self._on_filter_toggled)
-        filter_layout.addRow(_('Sugerir apenas livros não lidos:'), self.filter_unread_checkbox)
+        filter_layout.addRow(_('Suggest only unread books:'), self.filter_unread_checkbox)
 
-        self.read_column_label = QLabel(_('Coluna de leitura:'))
+        self.read_column_label = QLabel(_('Read column:'))
         self.read_column_input = QLineEdit()
-        self.read_column_input.setPlaceholderText(_('ex: read, lido, ja_li'))
+        self.read_column_input.setPlaceholderText(_('e.g. read, finished, done'))
         self.read_column_input.setToolTip(_(
-            'Nome da coluna booleana personalizada que indica se o livro foi lido.\n'
-            'Use apenas o rótulo da coluna, sem o prefixo "#".\n'
-            'Exemplo: se a coluna se chama "#read", informe apenas "read".'
+            'Name of the custom boolean column that indicates whether a book has been read.\n'
+            'Use only the column label without the "#" prefix.\n'
+            'Example: if the column is called "#read", enter "read".'
         ))
         filter_layout.addRow(self.read_column_label, self.read_column_input)
 
         layout.addWidget(filter_group)
 
         # Grupo: Cache
-        cache_group = QGroupBox(_('Gerenciamento de Cache'))
+        cache_group = QGroupBox(_('Cache Management'))
         cache_layout = QVBoxLayout()
         cache_group.setLayout(cache_layout)
 
         cache_info = QLabel(_(
-            'O plugin mantém um índice da sua biblioteca para buscas rápidas.\n'
-            'O índice é invalidado automaticamente quando a biblioteca é modificada.\n'
-            'Use o botão abaixo caso queira forçar uma reindexação completa na\n'
-            'próxima vez que abrir as recomendações.'
+            'The plugin maintains an index of your library for fast searches.\n'
+            'The index is invalidated automatically when the library is modified.\n'
+            'Use the button below to force a full re-index the\n'
+            'next time you open recommendations.'
         ))
         cache_info.setWordWrap(True)
         cache_layout.addWidget(cache_info)
 
-        rebuild_button = QPushButton(_('Limpar Cache do Índice'))
+        rebuild_button = QPushButton(_('Clear Index Cache'))
         rebuild_button.setToolTip(_(
-            'Remove o cache do índice. O índice será reconstruído automaticamente\n'
-            'na próxima pesquisa de recomendações (pode levar alguns minutos).'
+            'Removes the index cache. The index will be rebuilt automatically\n'
+            'on the next recommendation search (may take a few minutes).'
         ))
         rebuild_button.clicked.connect(self._clear_index_cache)
         cache_layout.addWidget(rebuild_button)
@@ -128,18 +128,18 @@ class ConfigWidget(QWidget):
         layout.addWidget(cache_group)
 
         # Grupo: Informações
-        info_group = QGroupBox(_('Informações'))
+        info_group = QGroupBox(_('Information'))
         info_layout = QVBoxLayout()
         info_group.setLayout(info_layout)
 
         info_text = QLabel(_(
-            '<b>Como funciona:</b><br/>'
-            'O plugin analisa tags, autores, séries, editoras e anos de publicação '
-            'para encontrar livros similares em sua biblioteca.<br/><br/>'
-            '<b>Dicas para melhores resultados:</b><br/>'
-            '• Mantenha tags organizadas e consistentes<br/>'
-            '• Preencha metadados (autor, série, editora)<br/>'
-            '• Use tags descritivas (gênero, tópicos, etc.)'
+            '<b>How it works:</b><br/>'
+            'The plugin analyses tags, authors, series, publishers, and publication years '
+            'to find similar books in your library.<br/><br/>'
+            '<b>Tips for better results:</b><br/>'
+            '• Keep tags organised and consistent<br/>'
+            '• Fill in metadata (author, series, publisher)<br/>'
+            '• Use descriptive tags (genre, topics, etc.)'
         ))
         info_text.setWordWrap(True)
         info_layout.addWidget(info_text)
@@ -171,11 +171,11 @@ class ConfigWidget(QWidget):
     def _clear_index_cache(self):
         reply = QMessageBox.question(
             self,
-            _('Limpar Cache do Índice'),
-            _('O cache do índice será removido.\n\n'
-              'O índice será reconstruído automaticamente na próxima pesquisa de '
-              'recomendações. Para bibliotecas grandes isso pode levar alguns minutos.\n\n'
-              'Continuar?'),
+            _('Clear Index Cache'),
+            _('The index cache will be removed.\n\n'
+              'The index will be rebuilt automatically on the next recommendation search. '
+              'For large libraries this may take a few minutes.\n\n'
+              'Continue?'),
             StandardButton.Yes | StandardButton.No,
             StandardButton.No
         )
@@ -205,9 +205,9 @@ class ConfigWidget(QWidget):
                     pass
 
             msg = (
-                _('Cache removido com sucesso.\n\n'
-                  'O índice será reconstruído automaticamente na próxima pesquisa.')
+                _('Cache cleared successfully.\n\n'
+                  'The index will be rebuilt automatically on the next search.')
                 if removed else
-                _('Nenhum cache encontrado. O índice já será gerado na próxima pesquisa.')
+                _('No cache found. The index will be generated on the next search.')
             )
-            QMessageBox.information(self, _('Cache Limpo'), msg)
+            QMessageBox.information(self, _('Cache Cleared'), msg)
