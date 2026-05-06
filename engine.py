@@ -578,6 +578,11 @@ class RecommendationEngine:
         if filter_unread and read_column:
             before = len(candidates)
             read_ids = self._get_read_ids(read_column)
+            # Livros da mesma série nunca são filtrados: são os candidatos
+            # mais relevantes quando o livro fonte pertence a uma série.
+            if book_info.get('series'):
+                series_key = book_info['series'].lower()
+                read_ids -= self.metadata_index['series'].get(series_key, set())
             candidates -= read_ids
             log.debug("Filtro não lidos: %d → %d candidatos (coluna=#%s, lidos=%d)",
                       before, len(candidates), read_column, len(read_ids))
